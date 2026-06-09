@@ -33,7 +33,7 @@
     "allowedSpawnAgents": [
       "mcp-agent-e2e-designer",
       "user-flow-debug",
-      "production-soak-governor"
+      "production-lifecycle-governor"
     ]
   },
   "purpose": "DomainForge Fabric dev-stage production-closed-loop lab that rotates public materials, runs MCP E2E pressure, submits self-evolution evidence, and validates review closure.",

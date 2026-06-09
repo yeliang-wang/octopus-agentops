@@ -99,15 +99,14 @@
     },
     {
       "schema": "agent-octopus-plugin/v1",
-      "id": "production-soak",
+      "id": "production-lifecycle",
       "version": "1.0.0",
       "lifecycle": "experimental",
       "category": "production-validation",
-      "title": "Production Soak",
-      "description": "Generic production-like long-duration soak validation and production release readiness governance for agent products with real services, real external boundaries, periodic reports, product-gap blocking, evidence bundles, and GO/NO-GO decisions.",
+      "title": "Production Lifecycle",
+      "description": "Generic production lifecycle governance for agent products with real services, configurable validation duration, cleanup, non-mock precheck, long-run execution, evolution delivery, evidence bundles, and GO/NO-GO decisions.",
       "agents": [
-        "production-soak-governor",
-        "production-release-governor"
+        "production-lifecycle-governor"
       ],
       "installTargets": [
         "claude-code",
@@ -119,17 +118,12 @@
         "agent-eval",
         "install-roundtrip"
       ],
-      "agentCount": 2,
+      "agentCount": 1,
       "agentSummaries": [
         {
-          "id": "production-release-governor",
+          "id": "production-lifecycle-governor",
           "lifecycle": "experimental",
-          "category": "production-release"
-        },
-        {
-          "id": "production-soak-governor",
-          "lifecycle": "experimental",
-          "category": "production-validation"
+          "category": "production-lifecycle"
         }
       ]
     }
