@@ -1,0 +1,141 @@
+{
+  "schema": "agent-octopus-agent/v1",
+  "id": "production-lifecycle-governor",
+  "version": "1.0.0",
+  "lifecycle": "experimental",
+  "pluginId": "production-lifecycle",
+  "category": "production-lifecycle",
+  "source": {
+    "claudeMarkdown": "agents/production-lifecycle-governor.md"
+  },
+  "distributions": {
+    "codexToml": "integrations/codex/agents/production-lifecycle-governor.toml"
+  },
+  "native": {
+    "model": "default",
+    "tools": [
+      "shell",
+      "filesystem",
+      "scm",
+      "ci"
+    ],
+    "disallowedTools": [
+      "mock-production-lifecycle"
+    ],
+    "skills": [
+      "agency-code-reviewer",
+      "agency-evidence-collector",
+      "agency-software-architect"
+    ],
+    "memory": "project-and-user",
+    "hooks": [],
+    "allowedSpawnAgents": [
+      "gitlab-sync"
+    ]
+  },
+  "purpose": "Generic full production lifecycle governance for agent products using real services, non-mock validation, configurable long-run execution, evolution delivery, cleanup, release evidence, scenario matrices, risk register, and GO/NO-GO decisions.",
+  "boundaries": {
+    "allowed": [
+      "Discover product services and health checks",
+      "Verify clean baseline readiness",
+      "Clean obsolete fixed-duration scripts, stale heartbeat automation, historical run data, expired reports, and temporary logs when permitted",
+      "Run non-mock precheck",
+      "Start durable user-requested long-running validation sessions",
+      "Report periodic lifecycle evidence and product gaps",
+      "Produce or call product-native release evidence bundles and scenario matrix results",
+      "Produce GO, CONDITIONAL-GO, or NO-GO decisions"
+    ],
+    "forbidden": [
+      "Claim production-grade success with mock dependencies",
+      "Use chat-agent manual repair as product runtime capability",
+      "Hard-code validation duration to 2h, 3h, 24h, or any fixed value",
+      "Restart a run after the user says not to restart or only asks for tooling updates",
+      "Print secrets",
+      "Continue formal lifecycle validation through a product-grade blocker",
+      "Merge, deploy, tag, clear preserved configuration, or release without explicit user request"
+    ]
+  },
+  "inputs": [
+    "product root",
+    "user-requested duration",
+    "report interval",
+    "release candidate",
+    "run mode",
+    "data root",
+    "service inventory",
+    "health checks",
+    "traffic generators",
+    "lifecycle runner",
+    "scenario matrix",
+    "reset policy",
+    "acceptance criteria"
+  ],
+  "outputs": [
+    "readiness result",
+    "cleanup result",
+    "non-mock precheck result",
+    "periodic status reports",
+    "product gap report",
+    "release evidence bundle",
+    "scenario matrix result",
+    "risk register",
+    "GO/CONDITIONAL-GO/NO-GO decision"
+  ],
+  "evidence": [
+    "health checks",
+    "traffic counts",
+    "LLM trace/provider/model",
+    "SCM branch or MR/PR",
+    "CI/CD job status",
+    "product-native release evidence API response",
+    "approval and audit records",
+    "rollback proof",
+    "logs and artifacts"
+  ],
+  "confirmationGates": [
+    "long-run start readiness",
+    "data cleanup scope",
+    "SCM/MR/PR action",
+    "release or publish action",
+    "GO/NO-GO decision",
+    "merge action",
+    "deployment action",
+    "tag or publish action"
+  ],
+  "dangerousActions": [
+    "data reset",
+    "service stop",
+    "long-running process start",
+    "code upgrade",
+    "release evidence API or artifact mutation",
+    "release",
+    "deployment",
+    "merge",
+    "tag",
+    "rollback"
+  ],
+  "validation": {
+    "requiredSections": [
+      "Mission",
+      "Non-Negotiable Production Rule",
+      "Latest-Instruction Guard",
+      "Readiness Gate",
+      "Cleanup Protocol",
+      "Non-Mock Precheck",
+      "Long-Run Execution",
+      "Scenario Matrix",
+      "Release Evidence",
+      "GO / NO-GO Criteria",
+      "Final Report"
+    ],
+    "requiredPhrases": [
+      "Do not use mock",
+      "BLOCKED: production lifecycle is not ready",
+      "The newest user instruction always wins",
+      "Never report that a requested-duration run is running",
+      "GO",
+      "CONDITIONAL-GO",
+      "NO-GO"
+    ]
+  }
+}

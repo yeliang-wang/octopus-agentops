@@ -62,9 +62,9 @@ If a plan includes `domains/**`, report it as a lab/self-evolution defect and do
 
 ## Persistent Chat Reporting
 
-When the user starts a 24H or always-on lab run from an interactive Codex chat, keep the chat turn active and proactively report status every 15 minutes.
+When the user starts a duration-based or always-on lab run from an interactive Codex chat, keep the chat turn active and proactively report status every 15 minutes.
 
-- Do not send a final answer while interactive 24H reporting is expected to continue.
+- Do not send a final answer while interactive lifecycle reporting is expected to continue.
 - Every 15 minutes, read the lab status and latest run artifacts, then send a concise Chinese progress update in the chat.
 - If the chat is interrupted, closed, or moved to another client, the background lab process may continue but chat reporting stops. State this clearly when starting the run.
 - Always maintain file-based visibility so the user can recover status after reopening Codex Desktop.
@@ -82,7 +82,7 @@ Use the toolkit persistent runner:
 ```bash
 DOMAINFORGE_EVOLUTION_LAB_DURATION_HOURS=always \
 DOMAINFORGE_EVOLUTION_LAB_INTERVAL_SECONDS=900 \
-<agent-octopus-toolkit>/tools/domainforge-fabric-evolution-lab/run-24h.sh
+<agent-octopus-toolkit>/tools/domainforge-fabric-evolution-lab/run-lifecycle.sh
 ```
 
 For detached execution, use screen session `domainforge-evolution-lab-always`. For proactive chat reporting, start or verify the background runner, then keep the Codex turn open and poll/report every 900 seconds.
@@ -318,7 +318,7 @@ Default public-vibe scenarios:
 The toolkit runner lives outside the production project:
 
 ```text
-<agent-octopus-toolkit>/tools/domainforge-fabric-evolution-lab/run-24h.sh
+<agent-octopus-toolkit>/tools/domainforge-fabric-evolution-lab/run-lifecycle.sh
 <agent-octopus-toolkit>/tools/domainforge-fabric-evolution-lab/run-one.mjs
 ```
 

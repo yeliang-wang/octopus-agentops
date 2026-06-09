@@ -2,7 +2,7 @@
 
 Production-oriented agent workflow platform for Claude Code and Codex.
 
-Octopus AgentOps turns repeatable AI coding workflows into installable, versioned, and auditable agent plugins. It focuses on the work that must be dependable in real projects: Git/CI governance, MCP E2E lifecycle validation, real Dashboard user-flow debugging, production-like soak testing, evidence collection, and cross-OS diagnostics.
+Octopus AgentOps turns repeatable AI coding workflows into installable, versioned, and auditable agent plugins. It focuses on the work that must be dependable in real projects: Git/CI governance, MCP E2E lifecycle validation, real Dashboard user-flow debugging, production lifecycle validation, evidence collection, and cross-OS diagnostics.
 
 The product goal is simple: manage agent operations as reusable product assets, not as one-off prompts and temporary scripts scattered across projects.
 
@@ -29,8 +29,7 @@ The product goal is simple: manage agent operations as reusable product assets, 
 | `domainforge-fabric-evolution-lab` | DomainForge Fabric production-closed-loop lab for rotating materials, MCP E2E pressure, review closure, and self-evolution evidence. |
 | `gitlab-sync` | GitLab synchronization, commit, push, MR/CI boundaries, and conflict handling. |
 | `mcp-agent-e2e-designer` | MCP intelligent-agent E2E lifecycle governor: discovery, prompt confirmation, execution, diagnosis, controlled code-fix, and evidence-backed self-evolution proposals. |
-| `production-release-governor` | Production release readiness governance with real soak evidence, security, approval, rollback, observability, scenario matrix, risk register, and GO/NO-GO decisions. |
-| `production-soak-governor` | Generic production-like configurable-duration validation with real readiness, non-mock prechecks, traffic, lifecycle runners, governance-gate enforcement, product-gap blocking, SCM, CI/CD, and final evidence. |
+| `production-lifecycle-governor` | Generic full production lifecycle governance with readiness, cleanup, non-mock precheck, configurable-duration validation, evolution delivery, release evidence, scenario matrix, risk register, and GO/NO-GO decisions. |
 | `user-flow-debug` | Real Dashboard user-flow debugging with runtime-flow discovery, screenshots, artifacts, role validation, diagnosis, and controlled fixes. |
 
 ## Plugins
@@ -39,7 +38,7 @@ The product goal is simple: manage agent operations as reusable product assets, 
 | --- | --- |
 | `git-workflow` | `gitlab-sync` |
 | `mcp-e2e-governance` | `mcp-agent-e2e-designer`, `user-flow-debug` |
-| `production-soak` | `production-soak-governor`, `production-release-governor` |
+| `production-lifecycle` | `production-lifecycle-governor` |
 | `domainforge-fabric-lab` | `domainforge-fabric-evolution-lab` |
 
 ## Who It Is For
@@ -91,25 +90,24 @@ time-driven 测试遵守生产边界：Dashboard UI 不应出现 tick/debug 控�
 
 `user-flow-debug` 还会在支持 role profile 的聊天页面中校验每个 step 的显示说话人是否来自该 step 的 owner role；默认 assistant/colleague 只应出现在开场或无 step 消息中。
 
-### MCP E2E And Production Soak Governance
+### MCP E2E And Production Lifecycle Governance
 
 `mcp-agent-e2e-designer` governs MCP product journeys from code-first discovery to prompt confirmation, execution, assertions, diagnosis, and self-evolution proposal gating.
 
-`production-soak-governor` turns long-running production-like validation into a reusable agent workflow. It first discovers real services, connected systems, data roots, traffic generators, lifecycle runners, LLM, SCM, and CI/CD boundaries, then executes:
+`production-lifecycle-governor` turns the full production validation and release decision lifecycle into one reusable agent workflow. It first discovers real services, connected systems, data roots, traffic generators, lifecycle runners, LLM, SCM, and CI/CD boundaries, then executes:
 
 ```text
 readiness
-  -> 数据清零
+  -> 清理旧固定时长脚本 / stale heartbeat / 历史运行数据 / 过期报告 / 临时日志
   -> 非 mock 预检
   -> 用户指定时长的长稳运行
   -> 每 30 分钟汇报
   -> 产品缺口阻断与补强
-  -> 最终测试架构师视角报告
+  -> release evidence
+  -> GO / CONDITIONAL-GO / NO-GO
 ```
 
-Its production rule is strict: product-grade validation cannot rely on mock/fake/stub/simulator links, and chat-agent manual repair is not counted as production runtime capability.
-
-`production-release-governor` consumes soak reports and release evidence bundles to decide whether a candidate is ready for production. It checks source reproducibility, real-boundary evidence, security, approval gates, rollback, observability, data governance, multi-project isolation, and required failure scenarios before returning `GO`, `CONDITIONAL-GO`, or `NO-GO`.
+Its production rule is strict: product-grade validation cannot rely on mock/fake/stub/simulator links, chat-agent manual repair is not counted as production runtime capability, and validation duration must come from the user or discovered plan rather than hard-coded 2h/3h/24h scripts.
 
 ### Project-Scoped Codex Install
 
@@ -139,7 +137,7 @@ It reads agent and plugin metadata from manifest/catalog files, then supports se
 | Local diagnostics depend on OS-specific commands. | The sandbox provides portable HTTP, port, artifact, and Git checks. |
 | Git sync, commit, push, MR, and CI actions blur into one risky operation. | `gitlab-sync` makes each step explicit and confirmation-bound. |
 | User-flow validation bypasses the real UI. | `user-flow-debug` requires real Dashboard operation and screenshot evidence. |
-| Production validation accidentally uses mock/demo paths. | `production-soak-governor` blocks product-grade claims unless real boundaries are proven. |
+| Production validation accidentally uses mock/demo paths. | `production-lifecycle-governor` blocks product-grade claims unless real boundaries are proven. |
 | Installed-project edits flow back without review. | Offline proposals are generated and accepted only by the toolkit maintainer. |
 
 ## What's Under The Hood
@@ -274,22 +272,16 @@ DomainForge Fabric 进化实验：
 使用 domainforge-fabric-evolution-lab，在 local-prodlike 环境下检查 domainforge-fabric 生产级闭环 readiness，然后基于我提供的素材目录和场景目标跑 MCP 生命周期 E2E，收集 evidence 并触发 self-evolution。GitLab MR 只在我明确允许时创建，不要 merge。
 ```
 
-DomainForge Fabric 24H 常驻进化实验：
+DomainForge Fabric 可配置时长常驻进化实验：
 
 ```text
-使用 domainforge-fabric-evolution-lab，在 Codex Desktop 中启动 always-on 运行。请启动 toolkit 的 run-24h.sh，使用 preview-only 和 low-risk-only MR 策略，每 15 分钟轮转一次公开材料/场景目标并在聊天中主动反馈一次状态；同时维护 current-status.md、latest-run 和 continuous-always.log。
+使用 domainforge-fabric-evolution-lab，在 Codex Desktop 中启动用户指定时长或 always-on 运行。请启动 toolkit 的 run-lifecycle.sh，使用 preview-only 和 low-risk-only MR 策略，每 15 分钟轮转一次公开材料/场景目标并在聊天中主动反馈一次状态；同时维护 current-status.md、latest-run 和 continuous-always.log。
 ```
 
-通用产品生产仿真：
+通用产品生产生命周期：
 
 ```text
-使用 production-soak-governor，基于当前项目发现真实服务、接入项目、流量发生器、LLM、GitLab/GitHub 和 Jenkins/CI 配置。请先做 readiness、数据清零和非 mock 预检，预检通过后按我指定的时长启动长稳验证，并每 30 分钟汇报产品自身和每个接入项目的健康、流量、机会点、代码升级、SCM、CI/CD、治理门禁是否真实阻断下游执行，以及产品缺口。
-```
-
-生产发布门禁：
-
-```text
-使用 production-release-governor，基于当前 release candidate、production-soak-governor 最终报告、release evidence bundle、GitLab/GitHub、Jenkins/CI、权限审批、回滚、审计和可观测性证据，输出 GO / CONDITIONAL-GO / NO-GO，并列出必须修复项、可灰度条件和发布风险。
+使用 production-lifecycle-governor，基于当前项目发现真实服务、接入项目、流量发生器、LLM、GitLab/GitHub 和 Jenkins/CI 配置。请清理旧固定时长脚本、stale heartbeat、历史运行数据、过期报告和临时日志；保留项目注册、连接器、规则、环境和审计。然后做 readiness、非 mock 预检，预检通过后按我指定的时长启动长稳验证，并每 30 分钟汇报产品自身和每个接入项目的健康、流量、机会点、代码升级、SCM、CI/CD、治理门禁、release evidence、场景矩阵、风险登记和 GO/NO-GO 结论。
 ```
 
 time-driven 本地调试示例：
