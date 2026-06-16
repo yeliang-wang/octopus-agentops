@@ -104,6 +104,72 @@
     "lifecycle destroy",
     "source code mutation"
   ],
+  "loopContract": {
+    "enabled": true,
+    "evidenceRequired": true,
+    "confirmationGatesPreserved": true,
+    "inputs": [
+      "goal",
+      "materialPolicy",
+      "runtimeTarget",
+      "loopCadence",
+      "stopCondition",
+      "publishPolicy",
+      "fixPolicy"
+    ],
+    "stateFields": [
+      "goal",
+      "round",
+      "material",
+      "runtimeTarget",
+      "readiness",
+      "e2eResult",
+      "productGapSignals",
+      "improvementResult",
+      "reviewState",
+      "blocker",
+      "nextAction",
+      "stopCondition"
+    ],
+    "stopPolicies": [
+      "goal_proven",
+      "product_grade_blocker",
+      "maximum_rounds",
+      "deadline",
+      "missing_readiness",
+      "unsafe_protected_path_mutation",
+      "explicit_user_stop"
+    ],
+    "cadenceModes": [
+      "always_on_interval",
+      "fixed_round_count",
+      "fixed_duration",
+      "user_checkpoint"
+    ],
+    "iterationEvidence": [
+      "readiness result",
+      "UI/API/MCP/CLI calls",
+      "run artifacts",
+      "product gap evidence",
+      "review closure evidence"
+    ]
+  },
+  "runtimeAdapters": {
+    "codexGoal": {
+      "supported": true,
+      "outerGoal": "Pressure-test and evolve the target product through approved closed-loop entrypoints.",
+      "innerLoopAgent": "product-evolution-lab",
+      "stateArtifact": "data/product-evolution-lab/<projectId>/loop-state.json",
+      "statusArtifact": "data/product-evolution-lab/<projectId>/current-status.md",
+      "evidenceRoot": "data/product-evolution-lab/<projectId>/evidence/",
+      "requiresFeature": "goals",
+      "resumePolicy": "Resume only after readiness is current and stop on product-grade blockers or missing confirmation gates."
+    },
+    "shellRunner": {
+      "supported": true,
+      "stateArtifact": "data/product-evolution-lab/<projectId>/loop-state.json"
+    }
+  },
   "validation": {
     "requiredSections": [
       "Core Boundary",

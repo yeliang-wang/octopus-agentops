@@ -93,6 +93,70 @@
     "code modification",
     "internal scheduler tick"
   ],
+  "loopContract": {
+    "enabled": true,
+    "evidenceRequired": true,
+    "confirmationGatesPreserved": true,
+    "inputs": [
+      "goal",
+      "runTarget",
+      "loopCadence",
+      "stopCondition",
+      "dashboardEntryUi",
+      "fixPolicy"
+    ],
+    "stateFields": [
+      "goal",
+      "attempt",
+      "runTarget",
+      "runtimeFlowType",
+      "lastScreenshotDirectory",
+      "lastArtifacts",
+      "lastFailureBoundary",
+      "lastFix",
+      "blocker",
+      "nextAction",
+      "stopCondition"
+    ],
+    "stopPolicies": [
+      "flow_passes",
+      "maximum_attempts",
+      "deadline",
+      "ambiguous_ui_contract",
+      "required_user_choice",
+      "fix_policy_boundary",
+      "explicit_user_stop"
+    ],
+    "cadenceModes": [
+      "continuous",
+      "after_each_fix",
+      "fixed_interval",
+      "user_checkpoint"
+    ],
+    "iterationEvidence": [
+      "browser screenshots",
+      "runtime responses",
+      "artifact files",
+      "logs",
+      "step validation matrix"
+    ]
+  },
+  "runtimeAdapters": {
+    "codexGoal": {
+      "supported": true,
+      "outerGoal": "Prove the visible Dashboard user flow through browser evidence without bypassing the UI journey.",
+      "innerLoopAgent": "user-flow-debug",
+      "stateArtifact": "data/user-flow-debug/<projectId>/loop-state.json",
+      "statusArtifact": "data/user-flow-debug/<projectId>/current-status.md",
+      "evidenceRoot": "data/user-flow-debug/<projectId>/evidence/",
+      "requiresFeature": "goals",
+      "resumePolicy": "Resume only after Dashboard reachability and runtime flow type are rechecked."
+    },
+    "shellRunner": {
+      "supported": true,
+      "stateArtifact": "data/user-flow-debug/<projectId>/loop-state.json"
+    }
+  },
   "validation": {
     "requiredSections": [
       "Required Inputs",

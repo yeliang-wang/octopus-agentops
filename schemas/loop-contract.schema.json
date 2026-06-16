@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agent-octopus-toolkit.local/schemas/loop-contract.schema.json",
+  "title": "agent-octopus loop contract",
+  "type": "object",
+  "required": [
+    "enabled",
+    "inputs",
+    "stateFields",
+    "stopPolicies",
+    "cadenceModes",
+    "iterationEvidence",
+    "evidenceRequired",
+    "confirmationGatesPreserved"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "enabled": { "type": "boolean" },
+    "inputs": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "minLength": 3 }
+    },
+    "stateFields": {
+      "type": "array",
+      "minItems": 5,
+      "items": { "type": "string", "minLength": 3 }
+    },
+    "stopPolicies": {
+      "type": "array",
+      "minItems": 3,
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z0-9][a-z0-9_]*$"
+      }
+    },
+    "cadenceModes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z0-9][a-z0-9_]*$"
+      }
+    },
+    "iterationEvidence": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "minLength": 3 }
+    },
+    "evidenceRequired": { "type": "boolean" },
+    "confirmationGatesPreserved": { "type": "boolean" }
+  }
+}

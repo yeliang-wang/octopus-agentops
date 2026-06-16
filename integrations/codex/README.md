@@ -6,6 +6,21 @@ Canonical reusable agent sources live under `agents/`. The TOML files here are g
 
 Each Codex agent must be declared in `manifests/agents/<agent>.json` and assigned to a plugin in `plugins/<plugin>/plugin.json`. Run `npm run generate`, `npm run validate`, and `npm run eval` from the toolkit root before installing or updating downstream projects.
 
+## Codex Goal Adapter
+
+Codex `/goal` is supported as the outer runtime for installed Codex agents. It does not replace each agent's `Goal-Driven Loop Mode`; it keeps the objective active while the agent-owned loop contract controls cadence, state, evidence, stop policies, and confirmation gates.
+
+Render the adapter plan for an agent:
+
+```bash
+npm run agents:goal-plan -- \
+  --agent mcp-e2e-governor \
+  --project-id your-project \
+  "Prove the MCP onboarding journey"
+```
+
+The generated Codex TOML files include a `Codex Goal Runtime Adapter` section from each agent manifest. The shared adapter guide is `integrations/codex/goal-adapter.md`.
+
 Install them into a project-scoped `.codex/agents/` directory:
 
 ```bash

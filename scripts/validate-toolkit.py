@@ -118,6 +118,7 @@ def validate_schema_files() -> None:
     required = [
         "agent-manifest.schema.json",
         "eval-result.schema.json",
+        "loop-contract.schema.json",
         "plugin-manifest.schema.json",
         "proposal.schema.json",
         "run-summary.schema.json",
@@ -148,6 +149,8 @@ def validate_manifest_shape(path: Path, manifest: dict) -> None:
         "evidence",
         "confirmationGates",
         "dangerousActions",
+        "loopContract",
+        "runtimeAdapters",
         "validation",
     ]
     for key in required:
@@ -180,6 +183,58 @@ def validate_manifest_shape(path: Path, manifest: dict) -> None:
     require(isinstance(validation.get("requiredSections"), list) and validation["requiredSections"], f"{rel(path)}: validation.requiredSections is required")
     require(isinstance(validation.get("requiredPhrases"), list), f"{rel(path)}: validation.requiredPhrases must be a list")
 
+    validate_loop_contract(path, manifest)
+
+
+def validate_string_list(path: Path, value: object, key: str, min_items: int = 1) -> list[str]:
+    require(isinstance(value, list) and len(value) >= min_items, f"{rel(path)}: {key} must have at least {min_items} item(s)")
+    for item in value:
+        require(isinstance(item, str) and len(item) >= 3, f"{rel(path)}: {key} contains invalid item {item!r}")
+    return value
+
+
+def validate_loop_contract(path: Path, manifest: dict) -> None:
+    loop_contract = manifest["loopContract"]
+    require(isinstance(loop_contract, dict), f"{rel(path)}: loopContract must be an object")
+    for key in ["enabled", "inputs", "stateFields", "stopPolicies", "cadenceModes", "iterationEvidence", "evidenceRequired", "confirmationGatesPreserved"]:
+        require(key in loop_contract, f"{rel(path)}: loopContract.{key} is required")
+    require(loop_contract["enabled"] is True, f"{rel(path)}: loopContract.enabled must be true for packaged agents")
+    require(loop_contract["evidenceRequired"] is True, f"{rel(path)}: loopContract.evidenceRequired must be true")
+    require(loop_contract["confirmationGatesPreserved"] is True, f"{rel(path)}: loopContract.confirmationGatesPreserved must be true")
+    loop_inputs = validate_string_list(path, loop_contract["inputs"], "loopContract.inputs")
+    state_fields = validate_string_list(path, loop_contract["stateFields"], "loopContract.stateFields", min_items=5)
+    stop_policies = validate_string_list(path, loop_contract["stopPolicies"], "loopContract.stopPolicies", min_items=3)
+    validate_string_list(path, loop_contract["cadenceModes"], "loopContract.cadenceModes")
+    validate_string_list(path, loop_contract["iterationEvidence"], "loopContract.iterationEvidence")
+    for required_field in ["goal", "blocker", "nextAction", "stopCondition"]:
+        require(required_field in state_fields, f"{rel(path)}: loopContract.stateFields missing {required_field}")
+    for required_input in ["goal", "loopCadence", "stopCondition"]:
+        require(required_input in loop_inputs, f"{rel(path)}: loopContract.inputs missing {required_input}")
+    for policy in stop_policies:
+        require(bool(re.match(r"^[a-z0-9][a-z0-9_]*$", policy)), f"{rel(path)}: invalid loop stop policy {policy!r}")
+
+    adapters = manifest["runtimeAdapters"]
+    require(isinstance(adapters, dict), f"{rel(path)}: runtimeAdapters must be an object")
+    require("codexGoal" in adapters, f"{rel(path)}: runtimeAdapters.codexGoal is required")
+    codex_goal = adapters["codexGoal"]
+    for key in ["supported", "outerGoal", "innerLoopAgent", "stateArtifact", "statusArtifact", "evidenceRoot", "requiresFeature", "resumePolicy"]:
+        require(key in codex_goal, f"{rel(path)}: runtimeAdapters.codexGoal.{key} is required")
+    require(codex_goal["supported"] is True, f"{rel(path)}: runtimeAdapters.codexGoal.supported must be true")
+    require(codex_goal["innerLoopAgent"] == manifest["id"], f"{rel(path)}: runtimeAdapters.codexGoal.innerLoopAgent must match id")
+    require(codex_goal["requiresFeature"] == "goals", f"{rel(path)}: runtimeAdapters.codexGoal.requiresFeature must be goals")
+    for key in ["outerGoal", "resumePolicy"]:
+        require(isinstance(codex_goal[key], str) and len(codex_goal[key]) >= 20, f"{rel(path)}: runtimeAdapters.codexGoal.{key} is too short")
+    for key in ["stateArtifact", "statusArtifact", "evidenceRoot"]:
+        value = codex_goal[key]
+        require(isinstance(value, str) and value.startswith("data/"), f"{rel(path)}: runtimeAdapters.codexGoal.{key} must be under data/")
+    require(codex_goal["stateArtifact"].endswith("loop-state.json"), f"{rel(path)}: runtimeAdapters.codexGoal.stateArtifact must end with loop-state.json")
+    require(codex_goal["statusArtifact"].endswith("current-status.md"), f"{rel(path)}: runtimeAdapters.codexGoal.statusArtifact must end with current-status.md")
+    require(codex_goal["evidenceRoot"].endswith("/"), f"{rel(path)}: runtimeAdapters.codexGoal.evidenceRoot must end with /")
+    if "shellRunner" in adapters:
+        shell_runner = adapters["shellRunner"]
+        require(shell_runner.get("supported") is True, f"{rel(path)}: runtimeAdapters.shellRunner.supported must be true when present")
+        require(str(shell_runner.get("stateArtifact", "")).startswith("data/"), f"{rel(path)}: runtimeAdapters.shellRunner.stateArtifact must be under data/")
+
 
 def validate_agent_files(path: Path, manifest: dict) -> None:
     source = REPO_ROOT / manifest["source"]["claudeMarkdown"]
@@ -195,9 +250,16 @@ def validate_agent_files(path: Path, manifest: dict) -> None:
     require(codex_data.get("name") == manifest["id"], f"{rel(codex)}: TOML name does not match manifest id")
     require(codex_data.get("description"), f"{rel(codex)}: TOML description is required")
     require(codex_data.get("developer_instructions"), f"{rel(codex)}: developer_instructions is required")
+    codex_instructions = str(codex_data.get("developer_instructions") or "")
 
     for section in manifest["validation"]["requiredSections"]:
         require(f"## {section}" in markdown_body or f"### {section}" in markdown_body, f"{rel(source)}: required section missing: {section}")
+
+    if manifest["loopContract"]["enabled"]:
+        require("## Goal-Driven Loop Mode" in markdown_body, f"{rel(source)}: loopContract requires Goal-Driven Loop Mode")
+        require("## Codex Goal Runtime Adapter" in codex_instructions, f"{rel(codex)}: Codex goal adapter section missing")
+        for phrase in ["Codex `/goal`", "outer objective runtime", "loopState", "stopPolicies"]:
+            require(phrase in codex_instructions, f"{rel(codex)}: Codex goal adapter phrase missing: {phrase}")
 
     combined_text = source.read_text(encoding="utf-8") + "\n" + codex.read_text(encoding="utf-8")
     for phrase in manifest["validation"]["requiredPhrases"]:

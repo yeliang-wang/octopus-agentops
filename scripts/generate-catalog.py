@@ -48,6 +48,8 @@ def build_catalog() -> tuple[dict, dict]:
             "native": agent["native"],
             "inputs": agent["inputs"],
             "outputs": agent["outputs"],
+            "loopContract": agent["loopContract"],
+            "runtimeAdapters": agent["runtimeAdapters"],
             "confirmationGates": agent["confirmationGates"],
             "dangerousActions": agent["dangerousActions"],
         })

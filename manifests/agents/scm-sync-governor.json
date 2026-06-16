@@ -79,6 +79,66 @@
     "git push --force",
     "branch deletion"
   ],
+  "loopContract": {
+    "enabled": true,
+    "evidenceRequired": true,
+    "confirmationGatesPreserved": true,
+    "inputs": [
+      "goal",
+      "targetRef",
+      "loopCadence",
+      "stopCondition",
+      "actionPolicy"
+    ],
+    "stateFields": [
+      "goal",
+      "targetRef",
+      "currentBranch",
+      "remoteState",
+      "dirtyState",
+      "lastAction",
+      "lastEvidence",
+      "blocker",
+      "nextAction",
+      "stopCondition"
+    ],
+    "stopPolicies": [
+      "goal_reached",
+      "conflict_requires_user_choice",
+      "ci_terminal_failure",
+      "maximum_attempts",
+      "deadline",
+      "explicit_user_stop"
+    ],
+    "cadenceModes": [
+      "continuous",
+      "user_checkpoint",
+      "fixed_interval"
+    ],
+    "iterationEvidence": [
+      "git status",
+      "git log",
+      "remote ref state",
+      "CI or change request status",
+      "command output"
+    ]
+  },
+  "runtimeAdapters": {
+    "codexGoal": {
+      "supported": true,
+      "outerGoal": "Synchronize repository state while preserving Git safety gates and user-owned work.",
+      "innerLoopAgent": "scm-sync-governor",
+      "stateArtifact": "data/scm-sync/<projectId>/loop-state.json",
+      "statusArtifact": "data/scm-sync/<projectId>/current-status.md",
+      "evidenceRoot": "data/scm-sync/<projectId>/evidence/",
+      "requiresFeature": "goals",
+      "resumePolicy": "Resume only after git status, branch, and remote refs are re-inspected."
+    },
+    "shellRunner": {
+      "supported": true,
+      "stateArtifact": "data/scm-sync/<projectId>/loop-state.json"
+    }
+  },
   "validation": {
     "requiredSections": [
       "Defaults",

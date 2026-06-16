@@ -207,4 +207,27 @@ End with:
 - CI/pipeline status checked and failing categories, if requested
 - tests run and status
 - current `git status`
+
+
+## Codex Goal Runtime Adapter
+
+This agent is Codex-goal compatible without being Codex-only. Treat Codex `/goal` as the outer objective runtime and this agent's Goal-Driven Loop Mode as the inner domain loop protocol.
+
+Codex goal mapping:
+
+- `outerGoal`: Synchronize repository state while preserving Git safety gates and user-owned work.
+- `innerLoopAgent`: scm-sync-governor
+- `requiresFeature`: goals
+- `stateArtifact`: data/scm-sync/<projectId>/loop-state.json
+- `statusArtifact`: data/scm-sync/<projectId>/current-status.md
+- `evidenceRoot`: data/scm-sync/<projectId>/evidence/
+- `resumePolicy`: Resume only after git status, branch, and remote refs are re-inspected.
+
+Loop contract summary:
+
+- `loopCadence` modes: continuous, user_checkpoint, fixed_interval
+- `stopPolicies`: goal_reached, conflict_requires_user_choice, ci_terminal_failure, maximum_attempts, deadline, explicit_user_stop
+- `loopState` fields: goal, targetRef, currentBranch, remoteState, dirtyState, lastAction, lastEvidence, blocker, nextAction, stopCondition
+
+When running under Codex `/goal`, persist or report `loopState` after every iteration, keep confirmation gates authoritative, and stop instead of bypassing pending user approval, missing evidence, or a declared stop policy. Do not weaken this agent's domain boundary merely because the outer runtime is continuous.
 """

@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -35,6 +36,13 @@ def load_manifests() -> list[dict]:
 
 def load_plugins() -> list[dict]:
     return [read_json(path) for path in sorted(PLUGIN_DIR.glob("*/plugin.json"))]
+
+
+def find_manifest(agent_id: str) -> dict:
+    for manifest in load_manifests():
+        if manifest["id"] == agent_id:
+            return manifest
+    raise SystemExit(f"unknown agent: {agent_id}")
 
 
 def print_table(headers: list[str], rows: list[list[str]]) -> None:
@@ -128,11 +136,41 @@ def codex_status_for_project(project_root: Path) -> list[dict]:
     return statuses
 
 
+def codex_goal_feature_status() -> dict:
+    codex = shutil.which("codex")
+    if not codex:
+        return {"codexFound": False, "goalsFeature": "unknown", "detail": "codex command not found"}
+    completed = subprocess.run(
+        [codex, "features", "list"],
+        cwd=REPO_ROOT,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+    if completed.returncode != 0:
+        return {
+            "codexFound": True,
+            "goalsFeature": "unknown",
+            "detail": (completed.stderr or completed.stdout).strip(),
+        }
+    for line in completed.stdout.splitlines():
+        parts = line.split()
+        if parts and parts[0] == "goals":
+            enabled = parts[-1].lower() == "true"
+            return {
+                "codexFound": True,
+                "goalsFeature": "enabled" if enabled else "disabled",
+                "enableCommand": "" if enabled else "codex features enable goals",
+            }
+    return {"codexFound": True, "goalsFeature": "unknown", "detail": "goals feature not listed"}
+
+
 def cmd_codex_status(args: argparse.Namespace) -> int:
     project_root = Path(args.project_root).resolve()
     statuses = codex_status_for_project(project_root)
+    goal_feature = codex_goal_feature_status()
     if args.json:
-        print(json.dumps({"projectRoot": str(project_root), "codexAgents": statuses}, ensure_ascii=False, indent=2))
+        print(json.dumps({"projectRoot": str(project_root), "codexGoalFeature": goal_feature, "codexAgents": statuses}, ensure_ascii=False, indent=2))
         return 0
 
     rows = []
@@ -146,7 +184,72 @@ def cmd_codex_status(args: argparse.Namespace) -> int:
         rows.append([item["id"], item["version"], item["lifecycle"], state, item["installed"]])
     print(f"Project: {project_root}")
     print_table(["agent", "version", "lifecycle", "status", "installed"], rows)
+    if goal_feature["goalsFeature"] == "disabled":
+        print("\nCodex /goal adapter: goals feature is disabled. Enable with: codex features enable goals")
+    elif goal_feature["goalsFeature"] == "enabled":
+        print("\nCodex /goal adapter: goals feature is enabled.")
+    else:
+        print(f"\nCodex /goal adapter: goals feature status is unknown ({goal_feature.get('detail', 'no detail')}).")
     return 1 if any(not item["installedExists"] or not item["matchesToolkit"] for item in statuses) else 0
+
+
+def build_goal_plan(manifest: dict, project_id: str, goal: str) -> dict:
+    codex_goal = manifest["runtimeAdapters"]["codexGoal"]
+    loop_contract = manifest["loopContract"]
+
+    def resolve(value: str) -> str:
+        return value.replace("<projectId>", project_id)
+
+    return {
+        "schema": "agent-octopus-codex-goal-plan/v1",
+        "agentId": manifest["id"],
+        "version": manifest["version"],
+        "projectId": project_id,
+        "codexGoal": {
+            "feature": codex_goal["requiresFeature"],
+            "outerGoal": goal or codex_goal["outerGoal"],
+            "recommendedCommand": "/goal",
+            "adapterRole": "Codex owns the outer objective runtime; the agent owns the inner loop protocol.",
+        },
+        "innerLoop": {
+            "agent": codex_goal["innerLoopAgent"],
+            "inputs": loop_contract["inputs"],
+            "cadenceModes": loop_contract["cadenceModes"],
+            "stopPolicies": loop_contract["stopPolicies"],
+            "stateFields": loop_contract["stateFields"],
+            "resumePolicy": codex_goal["resumePolicy"],
+        },
+        "artifacts": {
+            "stateArtifact": resolve(codex_goal["stateArtifact"]),
+            "statusArtifact": resolve(codex_goal["statusArtifact"]),
+            "evidenceRoot": resolve(codex_goal["evidenceRoot"]),
+        },
+        "gates": {
+            "confirmationGates": manifest["confirmationGates"],
+            "dangerousActions": manifest["dangerousActions"],
+            "evidenceRequired": loop_contract["evidenceRequired"],
+            "confirmationGatesPreserved": loop_contract["confirmationGatesPreserved"],
+        },
+    }
+
+
+def cmd_goal_plan(args: argparse.Namespace) -> int:
+    manifest = find_manifest(args.agent)
+    plan = build_goal_plan(manifest, args.project_id, " ".join(args.goal).strip())
+    if args.json:
+        print(json.dumps(plan, ensure_ascii=False, indent=2))
+        return 0
+    print(f"Agent: {plan['agentId']} {plan['version']}")
+    print(f"Project: {plan['projectId']}")
+    print(f"Codex command: {plan['codexGoal']['recommendedCommand']}")
+    print(f"Outer goal: {plan['codexGoal']['outerGoal']}")
+    print(f"Inner loop: {plan['innerLoop']['agent']}")
+    print(f"State: {plan['artifacts']['stateArtifact']}")
+    print(f"Status: {plan['artifacts']['statusArtifact']}")
+    print(f"Evidence: {plan['artifacts']['evidenceRoot']}")
+    print(f"Stop policies: {', '.join(plan['innerLoop']['stopPolicies'])}")
+    print(f"Confirmation gates: {', '.join(plan['gates']['confirmationGates'])}")
+    return 0
 
 
 def cmd_install(args: argparse.Namespace) -> int:
@@ -219,6 +322,13 @@ def build_parser() -> argparse.ArgumentParser:
     status_parser.add_argument("--project-root", default=".")
     status_parser.add_argument("--json", action="store_true")
     status_parser.set_defaults(func=cmd_codex_status)
+
+    goal_parser = sub.add_parser("goal-plan", help="Render a Codex /goal adapter plan for an agent")
+    goal_parser.add_argument("--agent", required=True)
+    goal_parser.add_argument("--project-id", default="default")
+    goal_parser.add_argument("--json", action="store_true")
+    goal_parser.add_argument("goal", nargs="*")
+    goal_parser.set_defaults(func=cmd_goal_plan)
 
     install_parser = sub.add_parser("install", help="Install agents or plugins into a target project")
     install_parser.add_argument("--project-root", default=".")

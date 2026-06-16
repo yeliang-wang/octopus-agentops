@@ -58,6 +58,71 @@
         "self-evolution proposal report",
         "pass/fail verdict"
       ],
+      "loopContract": {
+        "enabled": true,
+        "evidenceRequired": true,
+        "confirmationGatesPreserved": true,
+        "inputs": [
+          "goal",
+          "runtimeTarget",
+          "loopCadence",
+          "stopCondition",
+          "fixPolicy"
+        ],
+        "stateFields": [
+          "goal",
+          "useCaseId",
+          "runtimeTarget",
+          "promptConfirmation",
+          "attempt",
+          "lastAssertions",
+          "lastEvidence",
+          "lastFix",
+          "evolutionCandidates",
+          "blocker",
+          "nextAction",
+          "stopCondition"
+        ],
+        "stopPolicies": [
+          "assertions_pass",
+          "maximum_attempts",
+          "deadline",
+          "critical_blocker",
+          "pending_prompt_confirmation",
+          "pending_self_evolution_approval",
+          "explicit_user_stop"
+        ],
+        "cadenceModes": [
+          "continuous",
+          "fixed_interval",
+          "after_each_fix",
+          "user_checkpoint"
+        ],
+        "iterationEvidence": [
+          "MCP responses",
+          "assertion results",
+          "service responses",
+          "artifacts",
+          "logs",
+          "user corrections"
+        ]
+      },
+      "runtimeAdapters": {
+        "codexGoal": {
+          "supported": true,
+          "outerGoal": "Prove the user-visible MCP E2E business outcome without bypassing the MCP boundary.",
+          "innerLoopAgent": "mcp-e2e-governor",
+          "stateArtifact": "data/mcp-e2e/<projectId>/loop-state.json",
+          "statusArtifact": "data/mcp-e2e/<projectId>/current-status.md",
+          "evidenceRoot": "data/mcp-e2e/<projectId>/evidence/",
+          "requiresFeature": "goals",
+          "resumePolicy": "Resume from loopState, reuse only user-confirmed e2ePrompt variants, and stop on pending approvals."
+        },
+        "shellRunner": {
+          "supported": true,
+          "stateArtifact": "data/mcp-e2e/<projectId>/loop-state.json"
+        }
+      },
       "confirmationGates": [
         "exact E2E prompt",
         "destructive lifecycle action",
@@ -136,6 +201,72 @@
         "screenshots",
         "report"
       ],
+      "loopContract": {
+        "enabled": true,
+        "evidenceRequired": true,
+        "confirmationGatesPreserved": true,
+        "inputs": [
+          "goal",
+          "materialPolicy",
+          "runtimeTarget",
+          "loopCadence",
+          "stopCondition",
+          "publishPolicy",
+          "fixPolicy"
+        ],
+        "stateFields": [
+          "goal",
+          "round",
+          "material",
+          "runtimeTarget",
+          "readiness",
+          "e2eResult",
+          "productGapSignals",
+          "improvementResult",
+          "reviewState",
+          "blocker",
+          "nextAction",
+          "stopCondition"
+        ],
+        "stopPolicies": [
+          "goal_proven",
+          "product_grade_blocker",
+          "maximum_rounds",
+          "deadline",
+          "missing_readiness",
+          "unsafe_protected_path_mutation",
+          "explicit_user_stop"
+        ],
+        "cadenceModes": [
+          "always_on_interval",
+          "fixed_round_count",
+          "fixed_duration",
+          "user_checkpoint"
+        ],
+        "iterationEvidence": [
+          "readiness result",
+          "UI/API/MCP/CLI calls",
+          "run artifacts",
+          "product gap evidence",
+          "review closure evidence"
+        ]
+      },
+      "runtimeAdapters": {
+        "codexGoal": {
+          "supported": true,
+          "outerGoal": "Pressure-test and evolve the target product through approved closed-loop entrypoints.",
+          "innerLoopAgent": "product-evolution-lab",
+          "stateArtifact": "data/product-evolution-lab/<projectId>/loop-state.json",
+          "statusArtifact": "data/product-evolution-lab/<projectId>/current-status.md",
+          "evidenceRoot": "data/product-evolution-lab/<projectId>/evidence/",
+          "requiresFeature": "goals",
+          "resumePolicy": "Resume only after readiness is current and stop on product-grade blockers or missing confirmation gates."
+        },
+        "shellRunner": {
+          "supported": true,
+          "stateArtifact": "data/product-evolution-lab/<projectId>/loop-state.json"
+        }
+      },
       "confirmationGates": [
         "public material authorization",
         "SCM change request creation",
@@ -220,6 +351,74 @@
         "risk register",
         "GO/CONDITIONAL-GO/NO-GO decision"
       ],
+      "loopContract": {
+        "enabled": true,
+        "evidenceRequired": true,
+        "confirmationGatesPreserved": true,
+        "inputs": [
+          "goal",
+          "runtimeTarget",
+          "loopCadence",
+          "stopCondition",
+          "runMode",
+          "acceptanceCriteria"
+        ],
+        "stateFields": [
+          "goal",
+          "attempt",
+          "runtimeTarget",
+          "readiness",
+          "precheck",
+          "lastEvidence",
+          "productGap",
+          "releaseEvidence",
+          "decision",
+          "blocker",
+          "nextAction",
+          "stopCondition"
+        ],
+        "stopPolicies": [
+          "product_native_go",
+          "conditional_go",
+          "no_go_blocker",
+          "maximum_duration",
+          "maximum_attempts",
+          "failed_readiness",
+          "failed_precheck",
+          "release_decision",
+          "explicit_user_stop"
+        ],
+        "cadenceModes": [
+          "continuous",
+          "fixed_duration",
+          "fixed_interval",
+          "user_checkpoint"
+        ],
+        "iterationEvidence": [
+          "health checks",
+          "non-mock precheck",
+          "traffic counts",
+          "CI/CD status",
+          "release evidence bundle",
+          "logs and artifacts"
+        ]
+      },
+      "runtimeAdapters": {
+        "codexGoal": {
+          "supported": true,
+          "outerGoal": "Drive a real production lifecycle validation goal to a GO, CONDITIONAL-GO, or NO-GO decision.",
+          "innerLoopAgent": "production-lifecycle-governor",
+          "stateArtifact": "data/production-lifecycle/<projectId>/loop-state.json",
+          "statusArtifact": "data/production-lifecycle/<projectId>/current-status.md",
+          "evidenceRoot": "data/production-lifecycle/<projectId>/evidence/",
+          "requiresFeature": "goals",
+          "resumePolicy": "Resume only after live process status and non-mock readiness are rechecked."
+        },
+        "shellRunner": {
+          "supported": true,
+          "stateArtifact": "data/production-lifecycle/<projectId>/loop-state.json"
+        }
+      },
       "confirmationGates": [
         "long-run start readiness",
         "data cleanup scope",
@@ -288,6 +487,66 @@
         "commit and push summary",
         "CI or merge request status"
       ],
+      "loopContract": {
+        "enabled": true,
+        "evidenceRequired": true,
+        "confirmationGatesPreserved": true,
+        "inputs": [
+          "goal",
+          "targetRef",
+          "loopCadence",
+          "stopCondition",
+          "actionPolicy"
+        ],
+        "stateFields": [
+          "goal",
+          "targetRef",
+          "currentBranch",
+          "remoteState",
+          "dirtyState",
+          "lastAction",
+          "lastEvidence",
+          "blocker",
+          "nextAction",
+          "stopCondition"
+        ],
+        "stopPolicies": [
+          "goal_reached",
+          "conflict_requires_user_choice",
+          "ci_terminal_failure",
+          "maximum_attempts",
+          "deadline",
+          "explicit_user_stop"
+        ],
+        "cadenceModes": [
+          "continuous",
+          "user_checkpoint",
+          "fixed_interval"
+        ],
+        "iterationEvidence": [
+          "git status",
+          "git log",
+          "remote ref state",
+          "CI or change request status",
+          "command output"
+        ]
+      },
+      "runtimeAdapters": {
+        "codexGoal": {
+          "supported": true,
+          "outerGoal": "Synchronize repository state while preserving Git safety gates and user-owned work.",
+          "innerLoopAgent": "scm-sync-governor",
+          "stateArtifact": "data/scm-sync/<projectId>/loop-state.json",
+          "statusArtifact": "data/scm-sync/<projectId>/current-status.md",
+          "evidenceRoot": "data/scm-sync/<projectId>/evidence/",
+          "requiresFeature": "goals",
+          "resumePolicy": "Resume only after git status, branch, and remote refs are re-inspected."
+        },
+        "shellRunner": {
+          "supported": true,
+          "stateArtifact": "data/scm-sync/<projectId>/loop-state.json"
+        }
+      },
       "confirmationGates": [
         "protected branch push",
         "force push",
@@ -359,6 +618,70 @@
         "step validation matrix",
         "fix summary"
       ],
+      "loopContract": {
+        "enabled": true,
+        "evidenceRequired": true,
+        "confirmationGatesPreserved": true,
+        "inputs": [
+          "goal",
+          "runTarget",
+          "loopCadence",
+          "stopCondition",
+          "dashboardEntryUi",
+          "fixPolicy"
+        ],
+        "stateFields": [
+          "goal",
+          "attempt",
+          "runTarget",
+          "runtimeFlowType",
+          "lastScreenshotDirectory",
+          "lastArtifacts",
+          "lastFailureBoundary",
+          "lastFix",
+          "blocker",
+          "nextAction",
+          "stopCondition"
+        ],
+        "stopPolicies": [
+          "flow_passes",
+          "maximum_attempts",
+          "deadline",
+          "ambiguous_ui_contract",
+          "required_user_choice",
+          "fix_policy_boundary",
+          "explicit_user_stop"
+        ],
+        "cadenceModes": [
+          "continuous",
+          "after_each_fix",
+          "fixed_interval",
+          "user_checkpoint"
+        ],
+        "iterationEvidence": [
+          "browser screenshots",
+          "runtime responses",
+          "artifact files",
+          "logs",
+          "step validation matrix"
+        ]
+      },
+      "runtimeAdapters": {
+        "codexGoal": {
+          "supported": true,
+          "outerGoal": "Prove the visible Dashboard user flow through browser evidence without bypassing the UI journey.",
+          "innerLoopAgent": "user-flow-debug",
+          "stateArtifact": "data/user-flow-debug/<projectId>/loop-state.json",
+          "statusArtifact": "data/user-flow-debug/<projectId>/current-status.md",
+          "evidenceRoot": "data/user-flow-debug/<projectId>/evidence/",
+          "requiresFeature": "goals",
+          "resumePolicy": "Resume only after Dashboard reachability and runtime flow type are rechecked."
+        },
+        "shellRunner": {
+          "supported": true,
+          "stateArtifact": "data/user-flow-debug/<projectId>/loop-state.json"
+        }
+      },
       "confirmationGates": [
         "missing entry UI",
         "ambiguous runtime flow",

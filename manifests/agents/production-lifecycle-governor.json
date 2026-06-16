@@ -120,6 +120,74 @@
     "tag",
     "rollback"
   ],
+  "loopContract": {
+    "enabled": true,
+    "evidenceRequired": true,
+    "confirmationGatesPreserved": true,
+    "inputs": [
+      "goal",
+      "runtimeTarget",
+      "loopCadence",
+      "stopCondition",
+      "runMode",
+      "acceptanceCriteria"
+    ],
+    "stateFields": [
+      "goal",
+      "attempt",
+      "runtimeTarget",
+      "readiness",
+      "precheck",
+      "lastEvidence",
+      "productGap",
+      "releaseEvidence",
+      "decision",
+      "blocker",
+      "nextAction",
+      "stopCondition"
+    ],
+    "stopPolicies": [
+      "product_native_go",
+      "conditional_go",
+      "no_go_blocker",
+      "maximum_duration",
+      "maximum_attempts",
+      "failed_readiness",
+      "failed_precheck",
+      "release_decision",
+      "explicit_user_stop"
+    ],
+    "cadenceModes": [
+      "continuous",
+      "fixed_duration",
+      "fixed_interval",
+      "user_checkpoint"
+    ],
+    "iterationEvidence": [
+      "health checks",
+      "non-mock precheck",
+      "traffic counts",
+      "CI/CD status",
+      "release evidence bundle",
+      "logs and artifacts"
+    ]
+  },
+  "runtimeAdapters": {
+    "codexGoal": {
+      "supported": true,
+      "outerGoal": "Drive a real production lifecycle validation goal to a GO, CONDITIONAL-GO, or NO-GO decision.",
+      "innerLoopAgent": "production-lifecycle-governor",
+      "stateArtifact": "data/production-lifecycle/<projectId>/loop-state.json",
+      "statusArtifact": "data/production-lifecycle/<projectId>/current-status.md",
+      "evidenceRoot": "data/production-lifecycle/<projectId>/evidence/",
+      "requiresFeature": "goals",
+      "resumePolicy": "Resume only after live process status and non-mock readiness are rechecked."
+    },
+    "shellRunner": {
+      "supported": true,
+      "stateArtifact": "data/production-lifecycle/<projectId>/loop-state.json"
+    }
+  },
   "validation": {
     "requiredSections": [
       "Mission",

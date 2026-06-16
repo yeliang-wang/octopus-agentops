@@ -92,6 +92,71 @@
     "code-fix",
     "toolkit instruction update"
   ],
+  "loopContract": {
+    "enabled": true,
+    "evidenceRequired": true,
+    "confirmationGatesPreserved": true,
+    "inputs": [
+      "goal",
+      "runtimeTarget",
+      "loopCadence",
+      "stopCondition",
+      "fixPolicy"
+    ],
+    "stateFields": [
+      "goal",
+      "useCaseId",
+      "runtimeTarget",
+      "promptConfirmation",
+      "attempt",
+      "lastAssertions",
+      "lastEvidence",
+      "lastFix",
+      "evolutionCandidates",
+      "blocker",
+      "nextAction",
+      "stopCondition"
+    ],
+    "stopPolicies": [
+      "assertions_pass",
+      "maximum_attempts",
+      "deadline",
+      "critical_blocker",
+      "pending_prompt_confirmation",
+      "pending_self_evolution_approval",
+      "explicit_user_stop"
+    ],
+    "cadenceModes": [
+      "continuous",
+      "fixed_interval",
+      "after_each_fix",
+      "user_checkpoint"
+    ],
+    "iterationEvidence": [
+      "MCP responses",
+      "assertion results",
+      "service responses",
+      "artifacts",
+      "logs",
+      "user corrections"
+    ]
+  },
+  "runtimeAdapters": {
+    "codexGoal": {
+      "supported": true,
+      "outerGoal": "Prove the user-visible MCP E2E business outcome without bypassing the MCP boundary.",
+      "innerLoopAgent": "mcp-e2e-governor",
+      "stateArtifact": "data/mcp-e2e/<projectId>/loop-state.json",
+      "statusArtifact": "data/mcp-e2e/<projectId>/current-status.md",
+      "evidenceRoot": "data/mcp-e2e/<projectId>/evidence/",
+      "requiresFeature": "goals",
+      "resumePolicy": "Resume from loopState, reuse only user-confirmed e2ePrompt variants, and stop on pending approvals."
+    },
+    "shellRunner": {
+      "supported": true,
+      "stateArtifact": "data/mcp-e2e/<projectId>/loop-state.json"
+    }
+  },
   "validation": {
     "requiredSections": [
       "Default Invocation Behavior",

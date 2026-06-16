@@ -13,6 +13,7 @@ The product goal is simple: manage agent operations as reusable product assets, 
 - Specialized subagents for Claude Code and Codex.
 - Plugin manifests and generated catalogs for search and installation.
 - Agent product contracts for inputs, outputs, evidence, confirmation gates, dangerous actions, and native runtime capabilities.
+- Runtime-neutral loop contracts with a Codex `/goal` adapter for Codex-native release workflows.
 - Generated Codex distributions from canonical Markdown agent sources.
 - Deterministic validation and eval scripts.
 - A lightweight CLI control plane for listing, searching, installing, and checking drift.
@@ -94,6 +95,39 @@ time-driven 测试遵守生产边界：Dashboard UI 不应出现 tick/debug 控�
 
 Every packaged subagent supports a `Goal-Driven Loop Mode`: the user supplies a goal, loop cadence, stop condition, and policy boundaries; the agent iterates with explicit `loopState`, per-iteration evidence, blockers, and next actions. Loop mode does not bypass confirmation gates for protected branch pushes, source mutation, publish, rollback, deployment, internal tick APIs, or production-impacting actions.
 
+Loop mode is a product contract, not only prompt text. Each `manifests/agents/*.json` file declares a `loopContract` with inputs, state fields, cadence modes, stop policies, and iteration evidence. Runtime-specific execution lives under `runtimeAdapters`, with Codex `/goal` as the first release-grade adapter.
+
+### Codex-Native Goal Adapter
+
+Octopus AgentOps is Codex-first, not Codex-only. In Codex projects, `/goal` acts as the outer objective runtime while the installed toolkit agent remains the inner domain loop protocol.
+
+```text
+Codex /goal
+  -> keeps the outer objective moving
+  -> resumes or stops at the session/runtime level
+
+Octopus loopContract
+  -> defines loopCadence, stopPolicies, loopState, evidence, and gates
+  -> preserves domain rules such as MCP boundary, Git safety, or product-grade blockers
+```
+
+Render a Codex goal plan before starting a long-running loop:
+
+```bash
+npm run agents:goal-plan -- \
+  --agent mcp-e2e-governor \
+  --project-id your-project \
+  "Prove the MCP onboarding journey"
+```
+
+Check project install drift and Codex goal feature availability:
+
+```bash
+npm run agents:codex-status -- --project-root /path/to/your/project
+```
+
+See `integrations/codex/goal-adapter.md` and `examples/codex-goal/` for runnable patterns.
+
 ### Product Evolution, MCP E2E, And Production Lifecycle Governance
 
 `mcp-e2e-governor` governs MCP product journeys from code-first discovery to prompt confirmation, execution, assertions, diagnosis, and self-evolution proposal gating.
@@ -127,6 +161,7 @@ Codex agents install into the target project's `.codex/agents/` directory and do
 npm run agents:list
 npm run plugins:list
 npm run agents:search -- mcp
+npm run agents:goal-plan -- --agent mcp-e2e-governor --project-id your-project "Prove the MCP onboarding journey"
 npm run agents:install -- --plugin mcp-e2e-governance --project-root /path/to/your/project
 npm run agents:codex-status -- --project-root /path/to/your/project
 ```

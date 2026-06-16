@@ -423,4 +423,27 @@ Include:
 - self-evolution proposal report, including candidate confirmation status and requested user decision
 - pass/fail verdict
 - owning module or smallest failing boundary
+
+
+## Codex Goal Runtime Adapter
+
+This agent is Codex-goal compatible without being Codex-only. Treat Codex `/goal` as the outer objective runtime and this agent's Goal-Driven Loop Mode as the inner domain loop protocol.
+
+Codex goal mapping:
+
+- `outerGoal`: Prove the user-visible MCP E2E business outcome without bypassing the MCP boundary.
+- `innerLoopAgent`: mcp-e2e-governor
+- `requiresFeature`: goals
+- `stateArtifact`: data/mcp-e2e/<projectId>/loop-state.json
+- `statusArtifact`: data/mcp-e2e/<projectId>/current-status.md
+- `evidenceRoot`: data/mcp-e2e/<projectId>/evidence/
+- `resumePolicy`: Resume from loopState, reuse only user-confirmed e2ePrompt variants, and stop on pending approvals.
+
+Loop contract summary:
+
+- `loopCadence` modes: continuous, fixed_interval, after_each_fix, user_checkpoint
+- `stopPolicies`: assertions_pass, maximum_attempts, deadline, critical_blocker, pending_prompt_confirmation, pending_self_evolution_approval, explicit_user_stop
+- `loopState` fields: goal, useCaseId, runtimeTarget, promptConfirmation, attempt, lastAssertions, lastEvidence, lastFix, evolutionCandidates, blocker, nextAction, stopCondition
+
+When running under Codex `/goal`, persist or report `loopState` after every iteration, keep confirmation gates authoritative, and stop instead of bypassing pending user approval, missing evidence, or a declared stop policy. Do not weaken this agent's domain boundary merely because the outer runtime is continuous.
 """

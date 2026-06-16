@@ -40,6 +40,8 @@ def check_agent(manifest: dict) -> dict:
     add("confirmation-gates", len(manifest["confirmationGates"]) > 0, ",".join(manifest["confirmationGates"]))
     add("dangerous-actions", len(manifest["dangerousActions"]) > 0, ",".join(manifest["dangerousActions"]))
     add("evidence-policy", len(manifest["evidence"]) >= 3, ",".join(manifest["evidence"]))
+    add("loop-contract", manifest.get("loopContract", {}).get("enabled") is True, ",".join(manifest.get("loopContract", {}).get("stopPolicies", [])))
+    add("codex-goal-adapter", manifest.get("runtimeAdapters", {}).get("codexGoal", {}).get("supported") is True and "Codex Goal Runtime Adapter" in codex_text, "")
     add("native-tools", len(manifest["native"]["tools"]) > 0, ",".join(manifest["native"]["tools"]))
     add("codex-generated-instructions", "developer_instructions" in codex_text and manifest["id"] in codex_text, "")
     add("source-final-report", "Final Report" in source_text or "Final Response" in source_text, "")

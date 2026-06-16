@@ -22,6 +22,8 @@ Each agent must have a product contract:
 
 Run `npm run validate` to check manifests, Markdown sources, Codex distributions, README/AGENT-LIST references, plugin assignments, generated catalogs, and required sections.
 
+Every manifest also declares a structured `loopContract` and `runtimeAdapters.codexGoal` plan. Use `npm run agents:goal-plan -- --agent <agent> --project-id <project> "<goal>"` to render the Codex `/goal` mapping without making the toolkit Codex-only.
+
 ## Plugins
 
 | Plugin | Manifest | Agents |

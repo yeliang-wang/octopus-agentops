@@ -44,9 +44,44 @@ def multiline_toml(value: str) -> str:
     return f'"""\n{value}"""'
 
 
+def render_codex_goal_adapter(manifest: dict) -> str:
+    adapter = manifest.get("runtimeAdapters", {}).get("codexGoal", {})
+    loop_contract = manifest.get("loopContract", {})
+    if not adapter.get("supported"):
+        return ""
+    stop_policies = ", ".join(loop_contract.get("stopPolicies", []))
+    state_fields = ", ".join(loop_contract.get("stateFields", []))
+    cadence_modes = ", ".join(loop_contract.get("cadenceModes", []))
+    return f"""
+
+## Codex Goal Runtime Adapter
+
+This agent is Codex-goal compatible without being Codex-only. Treat Codex `/goal` as the outer objective runtime and this agent's Goal-Driven Loop Mode as the inner domain loop protocol.
+
+Codex goal mapping:
+
+- `outerGoal`: {adapter["outerGoal"]}
+- `innerLoopAgent`: {adapter["innerLoopAgent"]}
+- `requiresFeature`: {adapter["requiresFeature"]}
+- `stateArtifact`: {adapter["stateArtifact"]}
+- `statusArtifact`: {adapter["statusArtifact"]}
+- `evidenceRoot`: {adapter["evidenceRoot"]}
+- `resumePolicy`: {adapter["resumePolicy"]}
+
+Loop contract summary:
+
+- `loopCadence` modes: {cadence_modes}
+- `stopPolicies`: {stop_policies}
+- `loopState` fields: {state_fields}
+
+When running under Codex `/goal`, persist or report `loopState` after every iteration, keep confirmation gates authoritative, and stop instead of bypassing pending user approval, missing evidence, or a declared stop policy. Do not weaken this agent's domain boundary merely because the outer runtime is continuous.
+"""
+
+
 def render_codex_toml(manifest: dict) -> str:
     source = REPO_ROOT / manifest["source"]["claudeMarkdown"]
     metadata, body = parse_frontmatter(source)
+    body = body + render_codex_goal_adapter(manifest)
     description = metadata.get("description") or manifest["purpose"]
     native = manifest["native"]
     header = [
