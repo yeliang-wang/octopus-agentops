@@ -20,7 +20,8 @@
       "ci"
     ],
     "disallowedTools": [
-      "mock-production-lifecycle"
+      "mock-production-lifecycle",
+      "non-production-release-evidence"
     ],
     "skills": [
       "agency-code-reviewer",
@@ -52,7 +53,8 @@
       "Restart a run after the user says not to restart or only asks for tooling updates",
       "Print secrets",
       "Continue formal lifecycle validation through a product-grade blocker",
-      "Merge, deploy, tag, clear preserved configuration, or release without explicit user request"
+      "Merge, deploy, tag, clear preserved configuration, or release without explicit user request",
+      "Use mock, fake, stub, simulator, fixture-only, demo-only, smoke-only, or chat-only evidence as production release evidence"
     ]
   },
   "inputs": [
@@ -130,10 +132,20 @@
       "loopCadence",
       "stopCondition",
       "runMode",
-      "acceptanceCriteria"
+      "acceptanceCriteria",
+      "finalGoal",
+      "phaseGoals",
+      "reportCadence",
+      "finalDecision"
     ],
     "stateFields": [
       "goal",
+      "finalGoal",
+      "phaseGoals",
+      "currentPhase",
+      "acceptanceCriteria",
+      "reportCadence",
+      "finalDecision",
       "attempt",
       "runtimeTarget",
       "readiness",
@@ -170,7 +182,22 @@
       "CI/CD status",
       "release evidence bundle",
       "logs and artifacts"
-    ]
+    ],
+    "goalWindow": {
+      "required": true,
+      "fields": [
+        "finalGoal",
+        "phaseGoals",
+        "currentPhase",
+        "acceptanceCriteria",
+        "reportCadence",
+        "finalDecision"
+      ],
+      "phaseGoalRequired": true,
+      "finalGoalRequired": true,
+      "acceptanceCriteriaRequired": true,
+      "finalDecisionRequired": true
+    }
   },
   "runtimeAdapters": {
     "codexGoal": {
@@ -190,6 +217,7 @@
   },
   "validation": {
     "requiredSections": [
+      "Toolkit-Wide Production Release Rule",
       "Mission",
       "Non-Negotiable Production Rule",
       "Latest-Instruction Guard",
@@ -201,7 +229,8 @@
       "Scenario Matrix",
       "Release Evidence",
       "GO / NO-GO Criteria",
-      "Final Report"
+      "Final Report",
+      "Loop Goal Window"
     ],
     "requiredPhrases": [
       "Do not use mock",
@@ -212,7 +241,13 @@
       "CONDITIONAL-GO",
       "NO-GO",
       "loopState",
-      "stopCondition"
+      "stopCondition",
+      "Smoke checks may prove connectivity only",
+      "product-native release evidence",
+      "finalGoal",
+      "phaseGoals",
+      "acceptanceCriteria",
+      "finalDecision"
     ]
   }
 }

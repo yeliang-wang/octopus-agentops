@@ -21,6 +21,22 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 MANIFEST_DIR = REPO_ROOT / "manifests" / "agents"
 PLUGIN_DIR = REPO_ROOT / "plugins"
 SEMVER_RE = re.compile(r"^\d+\.\d+\.\d+$")
+PRODUCTION_RELEASE_RULE_SECTION = "Toolkit-Wide Production Release Rule"
+LOOP_GOAL_WINDOW_SECTION = "Loop Goal Window"
+LOOP_GOAL_WINDOW_FIELDS = {
+    "finalGoal",
+    "phaseGoals",
+    "currentPhase",
+    "acceptanceCriteria",
+    "reportCadence",
+    "finalDecision",
+}
+LOOP_GOAL_WINDOW_INPUTS = LOOP_GOAL_WINDOW_FIELDS - {"currentPhase"}
+NON_PRODUCTION_RELEASE_EVIDENCE_TOOL = "non-production-release-evidence"
+NON_PRODUCTION_RELEASE_EVIDENCE_FORBIDDEN = (
+    "Use mock, fake, stub, simulator, fixture-only, demo-only, smoke-only, "
+    "or chat-only evidence as production release evidence"
+)
 
 
 def read_json(path: Path) -> dict[str, Any]:
@@ -79,7 +95,11 @@ def loop_plan_checks() -> list[dict[str, Any]]:
         agent_id = manifest["id"]
         loop_contract = manifest.get("loopContract", {})
         codex_goal = manifest.get("runtimeAdapters", {}).get("codexGoal", {})
+        goal_window = loop_contract.get("goalWindow", {})
         required_state = {"goal", "blocker", "nextAction", "stopCondition"}
+        state_fields = set(loop_contract.get("stateFields", []))
+        inputs = set(loop_contract.get("inputs", []))
+        goal_window_fields = set(goal_window.get("fields", [])) if isinstance(goal_window, dict) else set()
         project_id = "release-readiness"
         artifacts = [
             str(codex_goal.get("stateArtifact", "")).replace("<projectId>", project_id),
@@ -88,9 +108,33 @@ def loop_plan_checks() -> list[dict[str, Any]]:
         ]
         add(checks, f"{agent_id}:loop-enabled", loop_contract.get("enabled") is True)
         add(checks, f"{agent_id}:codex-goal-supported", codex_goal.get("supported") is True and codex_goal.get("requiresFeature") == "goals")
-        add(checks, f"{agent_id}:required-loop-state", required_state.issubset(set(loop_contract.get("stateFields", []))))
+        add(checks, f"{agent_id}:required-loop-state", required_state.issubset(state_fields))
+        add(checks, f"{agent_id}:goal-window-required", isinstance(goal_window, dict) and goal_window.get("required") is True)
+        add(checks, f"{agent_id}:goal-window-flags", isinstance(goal_window, dict) and all(goal_window.get(key) is True for key in ["phaseGoalRequired", "finalGoalRequired", "acceptanceCriteriaRequired", "finalDecisionRequired"]))
+        add(checks, f"{agent_id}:goal-window-fields", LOOP_GOAL_WINDOW_FIELDS.issubset(goal_window_fields), ", ".join(sorted(goal_window_fields)))
+        add(checks, f"{agent_id}:goal-window-state", LOOP_GOAL_WINDOW_FIELDS.issubset(state_fields), ", ".join(sorted(state_fields)))
+        add(checks, f"{agent_id}:goal-window-inputs", LOOP_GOAL_WINDOW_INPUTS.issubset(inputs), ", ".join(sorted(inputs)))
         add(checks, f"{agent_id}:artifact-plan", all(item.startswith("data/") for item in artifacts), ", ".join(artifacts))
         add(checks, f"{agent_id}:evidence-and-gates", loop_contract.get("evidenceRequired") is True and loop_contract.get("confirmationGatesPreserved") is True)
+    return checks
+
+
+def production_release_rule_checks() -> list[dict[str, Any]]:
+    checks: list[dict[str, Any]] = []
+    for path in sorted(MANIFEST_DIR.glob("*.json")):
+        manifest = read_json(path)
+        agent_id = manifest["id"]
+        source = REPO_ROOT / manifest["source"]["claudeMarkdown"]
+        markdown = source.read_text(encoding="utf-8")
+        validation = manifest.get("validation", {})
+        add(checks, f"{agent_id}:markdown-rule", f"## {PRODUCTION_RELEASE_RULE_SECTION}" in markdown)
+        add(checks, f"{agent_id}:markdown-goal-window", f"## {LOOP_GOAL_WINDOW_SECTION}" in markdown)
+        add(checks, f"{agent_id}:disallowed-tool", NON_PRODUCTION_RELEASE_EVIDENCE_TOOL in manifest.get("native", {}).get("disallowedTools", []))
+        add(checks, f"{agent_id}:forbidden-boundary", NON_PRODUCTION_RELEASE_EVIDENCE_FORBIDDEN in manifest.get("boundaries", {}).get("forbidden", []))
+        add(checks, f"{agent_id}:required-section", PRODUCTION_RELEASE_RULE_SECTION in validation.get("requiredSections", []))
+        add(checks, f"{agent_id}:goal-window-required-section", LOOP_GOAL_WINDOW_SECTION in validation.get("requiredSections", []))
+        add(checks, f"{agent_id}:required-phrase", "Smoke checks may prove connectivity only" in validation.get("requiredPhrases", []))
+        add(checks, f"{agent_id}:goal-window-required-phrases", all(phrase in validation.get("requiredPhrases", []) for phrase in ["finalGoal", "phaseGoals", "acceptanceCriteria", "finalDecision"]))
     return checks
 
 
@@ -102,6 +146,10 @@ def docs_checks() -> list[dict[str, Any]]:
     add(checks, "readme-release-section", "Release Readiness" in readme)
     add(checks, "release-readiness-doc", release_doc.exists())
     add(checks, "competitive-baseline-doc", baseline_doc.exists())
+    add(checks, "readme-production-release-rule", PRODUCTION_RELEASE_RULE_SECTION in readme)
+    add(checks, "release-doc-production-release-rule", release_doc.exists() and PRODUCTION_RELEASE_RULE_SECTION in release_doc.read_text(encoding="utf-8"))
+    add(checks, "readme-loop-goal-window", LOOP_GOAL_WINDOW_SECTION in readme)
+    add(checks, "release-doc-loop-goal-window", release_doc.exists() and LOOP_GOAL_WINDOW_SECTION in release_doc.read_text(encoding="utf-8"))
     return checks
 
 
@@ -141,6 +189,7 @@ def build_result() -> dict[str, Any]:
         "package": package_checks(),
         "lifecycle": lifecycle_checks(),
         "loopPlans": loop_plan_checks(),
+        "productionReleaseRule": production_release_rule_checks(),
         "docs": docs_checks(),
         "commands": command_checks(),
     }

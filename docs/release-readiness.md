@@ -39,8 +39,33 @@ The gate runs or verifies:
 | Package metadata | name, semver, public package flag, license, `LICENSE` file |
 | Lifecycle | no `experimental` packaged agents or plugins |
 | Loop plans | `loopContract`, required loop state fields, Codex goal adapter, artifact plan |
+| Loop goal window | every packaged agent requires explicit final goal, phase goals, acceptance criteria, report cadence, and final decision |
+| Production release rule | every packaged agent forbids mock/fake/stub/simulator/fixture-only/demo-only/smoke-only/chat-only release evidence |
 | Docs | README release section and docs for release and competitive baseline |
 | Commands | manifest validation, distribution check, catalog check, deterministic eval, whitespace check, Codex install drift |
+
+## Loop Goal Window
+
+Every loop-capable packaged subagent must establish a `Loop Goal Window` before starting or resuming a loop. The window is part of the release contract, not optional prompt guidance.
+
+Required fields:
+
+- `finalGoal`: the terminal objective for the loop.
+- `phaseGoals`: staged objectives for the current release, validation, or evolution phase.
+- `currentPhase`: the active phase being worked now.
+- `acceptanceCriteria`: evidence-backed criteria needed before completion can be claimed.
+- `reportCadence`: when the agent reports progress, blockers, and next actions.
+- `finalDecision`: the explicit terminal decision such as `DONE`, `BLOCKED`, `NO-GO`, or `NOT_RELEASE_READY`.
+
+The release gate requires these fields in `loopContract.goalWindow`, `loopContract.stateFields`, and loop inputs where user input is needed. Agents must stop or report `BLOCKED` instead of running indefinitely when the final goal, acceptance criteria, or final decision cannot be established.
+
+## Toolkit-Wide Production Release Rule
+
+For product-grade, production-like, release-candidate, GA, or release-readiness work, no packaged subagent may use mock, fake, stub, simulator, fixture-only, demo-only, smoke-only, or chat-only evidence as production release evidence.
+
+- Smoke checks may prove connectivity only; they are not release validation.
+- If a required runtime, model, SCM, CI/CD, data, approval, rollback, observability, or product API boundary is missing or replaced by a non-production substitute, the result must be `NO-GO`, `BLOCKED`, or not release-ready.
+- Unit tests may still use controlled fakes, but release claims require real processes, real APIs, real credentials, real SCM, real CI/CD, real product data paths, and product-native release evidence where available.
 
 ## Promotion Rules
 
@@ -66,6 +91,7 @@ Each Codex loop plan must define:
 
 - Outer goal runtime: Codex `/goal`.
 - Inner loop protocol: selected Octopus agent.
+- Loop goal window: `finalGoal`, `phaseGoals`, `currentPhase`, `acceptanceCriteria`, `reportCadence`, and `finalDecision`.
 - `loopState` fields including `goal`, `blocker`, `nextAction`, and `stopCondition`.
 - State artifact: `data/<agent-domain>/<projectId>/loop-state.json`.
 - Status artifact: `data/<agent-domain>/<projectId>/current-status.md`.

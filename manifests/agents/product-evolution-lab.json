@@ -22,7 +22,8 @@
     ],
     "disallowedTools": [
       "production-customer-traffic",
-      "protected-asset-mutation"
+      "protected-asset-mutation",
+      "non-production-release-evidence"
     ],
     "skills": [
       "agency-software-architect",
@@ -50,7 +51,8 @@
       "Modify protected product assets without explicit approval",
       "Merge SCM change requests",
       "Publish lifecycle changes without explicit confirmation",
-      "Use production customer traffic"
+      "Use production customer traffic",
+      "Use mock, fake, stub, simulator, fixture-only, demo-only, smoke-only, or chat-only evidence as production release evidence"
     ]
   },
   "inputs": [
@@ -115,10 +117,21 @@
       "loopCadence",
       "stopCondition",
       "publishPolicy",
-      "fixPolicy"
+      "fixPolicy",
+      "finalGoal",
+      "phaseGoals",
+      "acceptanceCriteria",
+      "reportCadence",
+      "finalDecision"
     ],
     "stateFields": [
       "goal",
+      "finalGoal",
+      "phaseGoals",
+      "currentPhase",
+      "acceptanceCriteria",
+      "reportCadence",
+      "finalDecision",
       "round",
       "material",
       "runtimeTarget",
@@ -152,7 +165,22 @@
       "run artifacts",
       "product gap evidence",
       "review closure evidence"
-    ]
+    ],
+    "goalWindow": {
+      "required": true,
+      "fields": [
+        "finalGoal",
+        "phaseGoals",
+        "currentPhase",
+        "acceptanceCriteria",
+        "reportCadence",
+        "finalDecision"
+      ],
+      "phaseGoalRequired": true,
+      "finalGoalRequired": true,
+      "acceptanceCriteriaRequired": true,
+      "finalDecisionRequired": true
+    }
   },
   "runtimeAdapters": {
     "codexGoal": {
@@ -172,6 +200,7 @@
   },
   "validation": {
     "requiredSections": [
+      "Toolkit-Wide Production Release Rule",
       "Core Boundary",
       "Product Profile",
       "Protected Asset Boundary",
@@ -180,14 +209,22 @@
       "Goal-Driven Loop Mode",
       "Standard Workflow",
       "Safety Rules",
-      "Final Response Shape"
+      "Final Response Shape",
+      "Loop Goal Window"
     ],
     "requiredPhrases": [
       "BLOCKED: product closed loop is not ready",
       "loopState",
       "stopCondition",
       "current-status.md",
-      "Do not use this lab agent against production customer traffic"
+      "Do not use this lab agent against production customer traffic",
+      "Smoke checks may prove connectivity only",
+      "NO-GO",
+      "product-native release evidence",
+      "finalGoal",
+      "phaseGoals",
+      "acceptanceCriteria",
+      "finalDecision"
     ]
   }
 }

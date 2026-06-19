@@ -214,6 +214,7 @@ def build_goal_plan(manifest: dict, project_id: str, goal: str) -> dict:
         "innerLoop": {
             "agent": codex_goal["innerLoopAgent"],
             "inputs": loop_contract["inputs"],
+            "goalWindow": loop_contract["goalWindow"],
             "cadenceModes": loop_contract["cadenceModes"],
             "stopPolicies": loop_contract["stopPolicies"],
             "stateFields": loop_contract["stateFields"],
@@ -247,6 +248,7 @@ def cmd_goal_plan(args: argparse.Namespace) -> int:
     print(f"State: {plan['artifacts']['stateArtifact']}")
     print(f"Status: {plan['artifacts']['statusArtifact']}")
     print(f"Evidence: {plan['artifacts']['evidenceRoot']}")
+    print(f"Goal window fields: {', '.join(plan['innerLoop']['goalWindow']['fields'])}")
     print(f"Stop policies: {', '.join(plan['innerLoop']['stopPolicies'])}")
     print(f"Confirmation gates: {', '.join(plan['gates']['confirmationGates'])}")
     return 0

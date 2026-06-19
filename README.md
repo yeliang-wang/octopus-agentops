@@ -104,6 +104,26 @@ Every packaged subagent supports a `Goal-Driven Loop Mode`: the user supplies a 
 
 Loop mode is a product contract, not only prompt text. Each `manifests/agents/*.json` file declares a `loopContract` with inputs, state fields, cadence modes, stop policies, and iteration evidence. Runtime-specific execution lives under `runtimeAdapters`, with Codex `/goal` as the first release-grade adapter.
 
+### Loop Goal Window
+
+Every loop-capable subagent must establish a loop goal window before starting or resuming work. The window can be stated in chat or persisted in `loopState`, but it must make the long-running objective explicit enough to prevent an open-ended loop.
+
+- `finalGoal`: the end-state the loop is trying to reach.
+- `phaseGoals`: staged goals for the current release, validation, or evolution phase.
+- `acceptanceCriteria`: evidence-backed criteria required before completion can be claimed.
+- `reportCadence`: when the agent reports progress, blockers, and next actions.
+- `finalDecision`: the explicit terminal decision, such as `DONE`, `BLOCKED`, `NO-GO`, or `NOT_RELEASE_READY`.
+
+Agents may iterate through phase goals, but they must not claim loop completion until the final goal and acceptance criteria are proven with evidence.
+
+### Toolkit-Wide Production Release Rule
+
+All packaged subagents share the same release rule: when a task is product-grade, production-like, release-candidate, GA, or release-readiness work, do not use mock, fake, stub, simulator, fixture-only, demo-only, smoke-only, or chat-only evidence as production release evidence.
+
+- Smoke checks may prove connectivity only; they are not product-grade release validation.
+- If a required runtime, model, SCM, CI/CD, data, approval, rollback, observability, or product API boundary is missing or replaced by a non-production substitute, the decision must be `NO-GO`, `BLOCKED`, or not release-ready.
+- Release claims require real processes, real APIs, real credentials, real SCM, real CI/CD, real product data paths, and product-native release evidence where available.
+
 ### Codex-Native Goal Adapter
 
 Octopus AgentOps is Codex-first, not Codex-only. In Codex projects, `/goal` acts as the outer objective runtime while the installed toolkit agent remains the inner domain loop protocol.
@@ -114,7 +134,7 @@ Codex /goal
   -> resumes or stops at the session/runtime level
 
 Octopus loopContract
-  -> defines loopCadence, stopPolicies, loopState, evidence, and gates
+  -> defines loopCadence, goalWindow, stopPolicies, loopState, evidence, and gates
   -> preserves domain rules such as MCP boundary, Git safety, or product-grade blockers
 ```
 
@@ -154,7 +174,7 @@ readiness
   -> GO / CONDITIONAL-GO / NO-GO
 ```
 
-Its production rule is strict: product-grade validation cannot rely on mock/fake/stub/simulator links, chat-agent manual repair is not counted as production runtime capability, and validation duration must come from the user or discovered plan rather than hard-coded 2h/3h/24h scripts.
+Its production rule is strict and inherits the toolkit-wide release rule: product-grade validation cannot rely on mock/fake/stub/simulator/fixture-only/demo-only/smoke-only/chat-only evidence, chat-agent manual repair is not counted as production runtime capability, and validation duration must come from the user or discovered plan rather than hard-coded 2h/3h/24h scripts.
 
 ### Project-Scoped Codex Install
 

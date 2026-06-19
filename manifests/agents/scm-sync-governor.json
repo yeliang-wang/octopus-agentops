@@ -18,7 +18,8 @@
       "git"
     ],
     "disallowedTools": [
-      "destructive-git-without-confirmation"
+      "destructive-git-without-confirmation",
+      "non-production-release-evidence"
     ],
     "skills": [],
     "memory": "project",
@@ -38,7 +39,8 @@
       "Discard local work without explicit approval",
       "Force push without explicit approval",
       "Push directly to protected base branches without explicit approval",
-      "Bypass hooks without explicit approval"
+      "Bypass hooks without explicit approval",
+      "Use mock, fake, stub, simulator, fixture-only, demo-only, smoke-only, or chat-only evidence as production release evidence"
     ]
   },
   "inputs": [
@@ -88,10 +90,21 @@
       "targetRef",
       "loopCadence",
       "stopCondition",
-      "actionPolicy"
+      "actionPolicy",
+      "finalGoal",
+      "phaseGoals",
+      "acceptanceCriteria",
+      "reportCadence",
+      "finalDecision"
     ],
     "stateFields": [
       "goal",
+      "finalGoal",
+      "phaseGoals",
+      "currentPhase",
+      "acceptanceCriteria",
+      "reportCadence",
+      "finalDecision",
       "targetRef",
       "currentBranch",
       "remoteState",
@@ -121,7 +134,22 @@
       "remote ref state",
       "CI or change request status",
       "command output"
-    ]
+    ],
+    "goalWindow": {
+      "required": true,
+      "fields": [
+        "finalGoal",
+        "phaseGoals",
+        "currentPhase",
+        "acceptanceCriteria",
+        "reportCadence",
+        "finalDecision"
+      ],
+      "phaseGoalRequired": true,
+      "finalGoalRequired": true,
+      "acceptanceCriteriaRequired": true,
+      "finalDecisionRequired": true
+    }
   },
   "runtimeAdapters": {
     "codexGoal": {
@@ -141,19 +169,28 @@
   },
   "validation": {
     "requiredSections": [
+      "Toolkit-Wide Production Release Rule",
       "Defaults",
       "Goal-Driven Loop Mode",
       "Branch And Change Request Discipline",
       "Required Confirmations",
       "Standard Inspection",
-      "Final Report"
+      "Final Report",
+      "Loop Goal Window"
     ],
     "requiredPhrases": [
       "octopus-sandbox",
       "Never run `git reset --hard`",
       "Push only when requested",
       "loopState",
-      "stopCondition"
+      "stopCondition",
+      "Smoke checks may prove connectivity only",
+      "NO-GO",
+      "product-native release evidence",
+      "finalGoal",
+      "phaseGoals",
+      "acceptanceCriteria",
+      "finalDecision"
     ]
   }
 }

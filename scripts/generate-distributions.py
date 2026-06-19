@@ -52,6 +52,7 @@ def render_codex_goal_adapter(manifest: dict) -> str:
     stop_policies = ", ".join(loop_contract.get("stopPolicies", []))
     state_fields = ", ".join(loop_contract.get("stateFields", []))
     cadence_modes = ", ".join(loop_contract.get("cadenceModes", []))
+    goal_window_fields = ", ".join(loop_contract.get("goalWindow", {}).get("fields", []))
     return f"""
 
 ## Codex Goal Runtime Adapter
@@ -71,10 +72,11 @@ Codex goal mapping:
 Loop contract summary:
 
 - `loopCadence` modes: {cadence_modes}
+- `goalWindow` fields: {goal_window_fields}
 - `stopPolicies`: {stop_policies}
 - `loopState` fields: {state_fields}
 
-When running under Codex `/goal`, persist or report `loopState` after every iteration, keep confirmation gates authoritative, and stop instead of bypassing pending user approval, missing evidence, or a declared stop policy. Do not weaken this agent's domain boundary merely because the outer runtime is continuous.
+When running under Codex `/goal`, establish the loop goal window before starting or resuming: `finalGoal`, `phaseGoals`, `acceptanceCriteria`, `reportCadence`, and `finalDecision` must be explicit. Persist or report `loopState` after every iteration, keep confirmation gates authoritative, and stop instead of bypassing pending user approval, missing evidence, or a declared stop policy. Do not claim completion until the final goal and acceptance criteria are evidence-proven. Do not weaken this agent's domain boundary merely because the outer runtime is continuous.
 """
 
 

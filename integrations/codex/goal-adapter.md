@@ -18,7 +18,7 @@ Codex /goal
 
 Octopus agent loopContract
   -> inner domain loop protocol
-  -> loopCadence, stopPolicies, loopState, evidence
+  -> loopCadence, goalWindow, stopPolicies, loopState, evidence
   -> confirmation gates and dangerous actions
 ```
 
@@ -46,11 +46,12 @@ Before starting a Codex-goal run:
 
 Every Codex-goal run must persist or report:
 
+- Loop goal window: `finalGoal`, `phaseGoals`, `currentPhase`, `acceptanceCriteria`, `reportCadence`, and `finalDecision`.
 - `loop-state.json`: current loop state, blocker, stop policy, and next action.
 - `current-status.md`: human-readable heartbeat for long-running loops.
 - `evidence/`: command output, MCP responses, screenshots, logs, artifacts, or assertion reports.
 
-If the agent cannot write these artifacts in the target environment, it must report the same fields in chat and stop on missing evidence rather than claiming release readiness.
+If the agent cannot establish the loop goal window or write these artifacts in the target environment, it must report the same fields in chat and stop on missing evidence rather than claiming release readiness.
 
 ## Safety Rules
 

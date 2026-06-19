@@ -19,7 +19,8 @@
       "filesystem"
     ],
     "disallowedTools": [
-      "direct-product-api-for-user-journey"
+      "direct-product-api-for-user-journey",
+      "non-production-release-evidence"
     ],
     "skills": [
       "browser:control-in-app-browser"
@@ -41,7 +42,8 @@
       "Bypass the product UI for normal user journey execution",
       "Invent business content or fake artifacts",
       "Escalate from diagnosis to code changes silently",
-      "Create ad hoc diagnostic scripts in target workspaces"
+      "Create ad hoc diagnostic scripts in target workspaces",
+      "Use mock, fake, stub, simulator, fixture-only, demo-only, smoke-only, or chat-only evidence as production release evidence"
     ]
   },
   "inputs": [
@@ -103,10 +105,21 @@
       "loopCadence",
       "stopCondition",
       "dashboardEntryUi",
-      "fixPolicy"
+      "fixPolicy",
+      "finalGoal",
+      "phaseGoals",
+      "acceptanceCriteria",
+      "reportCadence",
+      "finalDecision"
     ],
     "stateFields": [
       "goal",
+      "finalGoal",
+      "phaseGoals",
+      "currentPhase",
+      "acceptanceCriteria",
+      "reportCadence",
+      "finalDecision",
       "attempt",
       "runTarget",
       "runtimeFlowType",
@@ -139,7 +152,22 @@
       "artifact files",
       "logs",
       "step validation matrix"
-    ]
+    ],
+    "goalWindow": {
+      "required": true,
+      "fields": [
+        "finalGoal",
+        "phaseGoals",
+        "currentPhase",
+        "acceptanceCriteria",
+        "reportCadence",
+        "finalDecision"
+      ],
+      "phaseGoalRequired": true,
+      "finalGoalRequired": true,
+      "acceptanceCriteriaRequired": true,
+      "finalDecisionRequired": true
+    }
   },
   "runtimeAdapters": {
     "codexGoal": {
@@ -159,20 +187,29 @@
   },
   "validation": {
     "requiredSections": [
+      "Toolkit-Wide Production Release Rule",
       "Required Inputs",
       "Runtime Flow Discovery",
       "No Built-In Scenario Defaults",
       "Goal-Driven Loop Mode",
       "Non-Negotiable Rules",
       "Workflow",
-      "Final Report"
+      "Final Report",
+      "Loop Goal Window"
     ],
     "requiredPhrases": [
       "Use real Dashboard UI browser automation",
       "Runtime flow type",
       "Do not create temporary Python diagnostic files",
       "loopState",
-      "stopCondition"
+      "stopCondition",
+      "Smoke checks may prove connectivity only",
+      "NO-GO",
+      "product-native release evidence",
+      "finalGoal",
+      "phaseGoals",
+      "acceptanceCriteria",
+      "finalDecision"
     ]
   }
 }

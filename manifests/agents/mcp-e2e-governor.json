@@ -19,7 +19,8 @@
       "filesystem"
     ],
     "disallowedTools": [
-      "runtime-execution-before-prompt-confirmation"
+      "runtime-execution-before-prompt-confirmation",
+      "non-production-release-evidence"
     ],
     "skills": [
       "agency-software-architect"
@@ -43,7 +44,8 @@
       "Start E2E execution before the printed prompt is confirmed",
       "Treat pending self-evolution proposals as accepted rules",
       "Modify project or toolkit instructions silently",
-      "Weaken assertions to make a run pass"
+      "Weaken assertions to make a run pass",
+      "Use mock, fake, stub, simulator, fixture-only, demo-only, smoke-only, or chat-only evidence as production release evidence"
     ]
   },
   "inputs": [
@@ -101,10 +103,21 @@
       "runtimeTarget",
       "loopCadence",
       "stopCondition",
-      "fixPolicy"
+      "fixPolicy",
+      "finalGoal",
+      "phaseGoals",
+      "acceptanceCriteria",
+      "reportCadence",
+      "finalDecision"
     ],
     "stateFields": [
       "goal",
+      "finalGoal",
+      "phaseGoals",
+      "currentPhase",
+      "acceptanceCriteria",
+      "reportCadence",
+      "finalDecision",
       "useCaseId",
       "runtimeTarget",
       "promptConfirmation",
@@ -139,7 +152,22 @@
       "artifacts",
       "logs",
       "user corrections"
-    ]
+    ],
+    "goalWindow": {
+      "required": true,
+      "fields": [
+        "finalGoal",
+        "phaseGoals",
+        "currentPhase",
+        "acceptanceCriteria",
+        "reportCadence",
+        "finalDecision"
+      ],
+      "phaseGoalRequired": true,
+      "finalGoalRequired": true,
+      "acceptanceCriteriaRequired": true,
+      "finalDecisionRequired": true
+    }
   },
   "runtimeAdapters": {
     "codexGoal": {
@@ -159,6 +187,7 @@
   },
   "validation": {
     "requiredSections": [
+      "Toolkit-Wide Production Release Rule",
       "Default Invocation Behavior",
       "Code-First Discovery",
       "Readiness Gate",
@@ -166,14 +195,22 @@
       "Execution",
       "Project Profile Extensions",
       "Self-Evolution Proposal Gate",
-      "Final Report"
+      "Final Report",
+      "Loop Goal Window"
     ],
     "requiredPhrases": [
       "promptConfirmation",
       "Do not start E2E execution",
       "pending-user-confirmation",
       "loopState",
-      "stopCondition"
+      "stopCondition",
+      "Smoke checks may prove connectivity only",
+      "NO-GO",
+      "product-native release evidence",
+      "finalGoal",
+      "phaseGoals",
+      "acceptanceCriteria",
+      "finalDecision"
     ]
   }
 }

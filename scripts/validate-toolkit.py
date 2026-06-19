@@ -30,6 +30,26 @@ SCHEMA_DIR = REPO_ROOT / "schemas"
 CATALOG_DIR = REPO_ROOT / "catalog"
 AGENT_ID_RE = re.compile(r"^[a-z0-9][a-z0-9-]*$")
 VERSION_RE = re.compile(r"^\d+\.\d+\.\d+$")
+PRODUCTION_RELEASE_RULE_SECTION = "Toolkit-Wide Production Release Rule"
+PRODUCTION_RELEASE_RULE_PHRASES = [
+    "Smoke checks may prove connectivity only",
+    "product-native release evidence",
+    "NO-GO",
+]
+LOOP_GOAL_WINDOW_SECTION = "Loop Goal Window"
+LOOP_GOAL_WINDOW_FIELDS = [
+    "finalGoal",
+    "phaseGoals",
+    "currentPhase",
+    "acceptanceCriteria",
+    "reportCadence",
+    "finalDecision",
+]
+NON_PRODUCTION_RELEASE_EVIDENCE_TOOL = "non-production-release-evidence"
+NON_PRODUCTION_RELEASE_EVIDENCE_FORBIDDEN = (
+    "Use mock, fake, stub, simulator, fixture-only, demo-only, smoke-only, "
+    "or chat-only evidence as production release evidence"
+)
 
 
 class ValidationError(Exception):
@@ -170,6 +190,10 @@ def validate_manifest_shape(path: Path, manifest: dict) -> None:
     for key in ["model", "tools", "disallowedTools", "skills", "memory", "hooks", "allowedSpawnAgents"]:
         require(key in native, f"{rel(path)}: native.{key} is required")
     require(native["memory"] in {"none", "project", "user", "project-and-user"}, f"{rel(path)}: invalid native.memory")
+    require(
+        NON_PRODUCTION_RELEASE_EVIDENCE_TOOL in native["disallowedTools"],
+        f"{rel(path)}: native.disallowedTools must include {NON_PRODUCTION_RELEASE_EVIDENCE_TOOL}",
+    )
 
     for list_key in ["inputs", "outputs", "evidence"]:
         value = manifest[list_key]
@@ -178,10 +202,17 @@ def validate_manifest_shape(path: Path, manifest: dict) -> None:
     boundaries = manifest["boundaries"]
     require(isinstance(boundaries.get("allowed"), list) and boundaries["allowed"], f"{rel(path)}: boundaries.allowed is required")
     require(isinstance(boundaries.get("forbidden"), list) and boundaries["forbidden"], f"{rel(path)}: boundaries.forbidden is required")
+    require(
+        NON_PRODUCTION_RELEASE_EVIDENCE_FORBIDDEN in boundaries["forbidden"],
+        f"{rel(path)}: boundaries.forbidden missing toolkit-wide production release rule",
+    )
 
     validation = manifest["validation"]
     require(isinstance(validation.get("requiredSections"), list) and validation["requiredSections"], f"{rel(path)}: validation.requiredSections is required")
     require(isinstance(validation.get("requiredPhrases"), list), f"{rel(path)}: validation.requiredPhrases must be a list")
+    require(PRODUCTION_RELEASE_RULE_SECTION in validation["requiredSections"], f"{rel(path)}: validation.requiredSections missing {PRODUCTION_RELEASE_RULE_SECTION}")
+    for phrase in PRODUCTION_RELEASE_RULE_PHRASES:
+        require(phrase in validation["requiredPhrases"], f"{rel(path)}: validation.requiredPhrases missing {phrase}")
 
     validate_loop_contract(path, manifest)
 
@@ -196,7 +227,7 @@ def validate_string_list(path: Path, value: object, key: str, min_items: int = 1
 def validate_loop_contract(path: Path, manifest: dict) -> None:
     loop_contract = manifest["loopContract"]
     require(isinstance(loop_contract, dict), f"{rel(path)}: loopContract must be an object")
-    for key in ["enabled", "inputs", "stateFields", "stopPolicies", "cadenceModes", "iterationEvidence", "evidenceRequired", "confirmationGatesPreserved"]:
+    for key in ["enabled", "inputs", "stateFields", "stopPolicies", "cadenceModes", "iterationEvidence", "goalWindow", "evidenceRequired", "confirmationGatesPreserved"]:
         require(key in loop_contract, f"{rel(path)}: loopContract.{key} is required")
     require(loop_contract["enabled"] is True, f"{rel(path)}: loopContract.enabled must be true for packaged agents")
     require(loop_contract["evidenceRequired"] is True, f"{rel(path)}: loopContract.evidenceRequired must be true")
@@ -210,6 +241,22 @@ def validate_loop_contract(path: Path, manifest: dict) -> None:
         require(required_field in state_fields, f"{rel(path)}: loopContract.stateFields missing {required_field}")
     for required_input in ["goal", "loopCadence", "stopCondition"]:
         require(required_input in loop_inputs, f"{rel(path)}: loopContract.inputs missing {required_input}")
+    for required_field in LOOP_GOAL_WINDOW_FIELDS:
+        require(required_field in state_fields, f"{rel(path)}: loopContract.stateFields missing goal window field {required_field}")
+    for required_input in ["finalGoal", "phaseGoals", "acceptanceCriteria", "reportCadence", "finalDecision"]:
+        require(required_input in loop_inputs, f"{rel(path)}: loopContract.inputs missing goal window input {required_input}")
+    goal_window = loop_contract["goalWindow"]
+    require(isinstance(goal_window, dict), f"{rel(path)}: loopContract.goalWindow must be an object")
+    for key in ["required", "fields", "phaseGoalRequired", "finalGoalRequired", "acceptanceCriteriaRequired", "finalDecisionRequired"]:
+        require(key in goal_window, f"{rel(path)}: loopContract.goalWindow.{key} is required")
+    require(goal_window["required"] is True, f"{rel(path)}: loopContract.goalWindow.required must be true")
+    require(goal_window["phaseGoalRequired"] is True, f"{rel(path)}: loopContract.goalWindow.phaseGoalRequired must be true")
+    require(goal_window["finalGoalRequired"] is True, f"{rel(path)}: loopContract.goalWindow.finalGoalRequired must be true")
+    require(goal_window["acceptanceCriteriaRequired"] is True, f"{rel(path)}: loopContract.goalWindow.acceptanceCriteriaRequired must be true")
+    require(goal_window["finalDecisionRequired"] is True, f"{rel(path)}: loopContract.goalWindow.finalDecisionRequired must be true")
+    goal_window_fields = validate_string_list(path, goal_window["fields"], "loopContract.goalWindow.fields", min_items=6)
+    for required_field in LOOP_GOAL_WINDOW_FIELDS:
+        require(required_field in goal_window_fields, f"{rel(path)}: loopContract.goalWindow.fields missing {required_field}")
     for policy in stop_policies:
         require(bool(re.match(r"^[a-z0-9][a-z0-9_]*$", policy)), f"{rel(path)}: invalid loop stop policy {policy!r}")
 
@@ -262,6 +309,8 @@ def validate_agent_files(path: Path, manifest: dict) -> None:
             require(phrase in codex_instructions, f"{rel(codex)}: Codex goal adapter phrase missing: {phrase}")
 
     combined_text = source.read_text(encoding="utf-8") + "\n" + codex.read_text(encoding="utf-8")
+    require(f"## {PRODUCTION_RELEASE_RULE_SECTION}" in markdown_body, f"{rel(source)}: toolkit-wide production release rule section missing")
+    require(f"## {LOOP_GOAL_WINDOW_SECTION}" in markdown_body, f"{rel(source)}: loop goal window section missing")
     for phrase in manifest["validation"]["requiredPhrases"]:
         require(phrase in combined_text, f"{rel(path)}: required phrase missing across source/distribution: {phrase}")
 

@@ -24,7 +24,8 @@
           "filesystem"
         ],
         "disallowedTools": [
-          "runtime-execution-before-prompt-confirmation"
+          "runtime-execution-before-prompt-confirmation",
+          "non-production-release-evidence"
         ],
         "skills": [
           "agency-software-architect"
@@ -67,10 +68,21 @@
           "runtimeTarget",
           "loopCadence",
           "stopCondition",
-          "fixPolicy"
+          "fixPolicy",
+          "finalGoal",
+          "phaseGoals",
+          "acceptanceCriteria",
+          "reportCadence",
+          "finalDecision"
         ],
         "stateFields": [
           "goal",
+          "finalGoal",
+          "phaseGoals",
+          "currentPhase",
+          "acceptanceCriteria",
+          "reportCadence",
+          "finalDecision",
           "useCaseId",
           "runtimeTarget",
           "promptConfirmation",
@@ -105,7 +117,22 @@
           "artifacts",
           "logs",
           "user corrections"
-        ]
+        ],
+        "goalWindow": {
+          "required": true,
+          "fields": [
+            "finalGoal",
+            "phaseGoals",
+            "currentPhase",
+            "acceptanceCriteria",
+            "reportCadence",
+            "finalDecision"
+          ],
+          "phaseGoalRequired": true,
+          "finalGoalRequired": true,
+          "acceptanceCriteriaRequired": true,
+          "finalDecisionRequired": true
+        }
       },
       "runtimeAdapters": {
         "codexGoal": {
@@ -163,7 +190,8 @@
         ],
         "disallowedTools": [
           "production-customer-traffic",
-          "protected-asset-mutation"
+          "protected-asset-mutation",
+          "non-production-release-evidence"
         ],
         "skills": [
           "agency-software-architect",
@@ -212,10 +240,21 @@
           "loopCadence",
           "stopCondition",
           "publishPolicy",
-          "fixPolicy"
+          "fixPolicy",
+          "finalGoal",
+          "phaseGoals",
+          "acceptanceCriteria",
+          "reportCadence",
+          "finalDecision"
         ],
         "stateFields": [
           "goal",
+          "finalGoal",
+          "phaseGoals",
+          "currentPhase",
+          "acceptanceCriteria",
+          "reportCadence",
+          "finalDecision",
           "round",
           "material",
           "runtimeTarget",
@@ -249,7 +288,22 @@
           "run artifacts",
           "product gap evidence",
           "review closure evidence"
-        ]
+        ],
+        "goalWindow": {
+          "required": true,
+          "fields": [
+            "finalGoal",
+            "phaseGoals",
+            "currentPhase",
+            "acceptanceCriteria",
+            "reportCadence",
+            "finalDecision"
+          ],
+          "phaseGoalRequired": true,
+          "finalGoalRequired": true,
+          "acceptanceCriteriaRequired": true,
+          "finalDecisionRequired": true
+        }
       },
       "runtimeAdapters": {
         "codexGoal": {
@@ -307,7 +361,8 @@
           "ci"
         ],
         "disallowedTools": [
-          "mock-production-lifecycle"
+          "mock-production-lifecycle",
+          "non-production-release-evidence"
         ],
         "skills": [
           "agency-code-reviewer",
@@ -361,10 +416,20 @@
           "loopCadence",
           "stopCondition",
           "runMode",
-          "acceptanceCriteria"
+          "acceptanceCriteria",
+          "finalGoal",
+          "phaseGoals",
+          "reportCadence",
+          "finalDecision"
         ],
         "stateFields": [
           "goal",
+          "finalGoal",
+          "phaseGoals",
+          "currentPhase",
+          "acceptanceCriteria",
+          "reportCadence",
+          "finalDecision",
           "attempt",
           "runtimeTarget",
           "readiness",
@@ -401,7 +466,22 @@
           "CI/CD status",
           "release evidence bundle",
           "logs and artifacts"
-        ]
+        ],
+        "goalWindow": {
+          "required": true,
+          "fields": [
+            "finalGoal",
+            "phaseGoals",
+            "currentPhase",
+            "acceptanceCriteria",
+            "reportCadence",
+            "finalDecision"
+          ],
+          "phaseGoalRequired": true,
+          "finalGoalRequired": true,
+          "acceptanceCriteriaRequired": true,
+          "finalDecisionRequired": true
+        }
       },
       "runtimeAdapters": {
         "codexGoal": {
@@ -463,7 +543,8 @@
           "git"
         ],
         "disallowedTools": [
-          "destructive-git-without-confirmation"
+          "destructive-git-without-confirmation",
+          "non-production-release-evidence"
         ],
         "skills": [],
         "memory": "project",
@@ -496,10 +577,21 @@
           "targetRef",
           "loopCadence",
           "stopCondition",
-          "actionPolicy"
+          "actionPolicy",
+          "finalGoal",
+          "phaseGoals",
+          "acceptanceCriteria",
+          "reportCadence",
+          "finalDecision"
         ],
         "stateFields": [
           "goal",
+          "finalGoal",
+          "phaseGoals",
+          "currentPhase",
+          "acceptanceCriteria",
+          "reportCadence",
+          "finalDecision",
           "targetRef",
           "currentBranch",
           "remoteState",
@@ -529,7 +621,22 @@
           "remote ref state",
           "CI or change request status",
           "command output"
-        ]
+        ],
+        "goalWindow": {
+          "required": true,
+          "fields": [
+            "finalGoal",
+            "phaseGoals",
+            "currentPhase",
+            "acceptanceCriteria",
+            "reportCadence",
+            "finalDecision"
+          ],
+          "phaseGoalRequired": true,
+          "finalGoalRequired": true,
+          "acceptanceCriteriaRequired": true,
+          "finalDecisionRequired": true
+        }
       },
       "runtimeAdapters": {
         "codexGoal": {
@@ -583,7 +690,8 @@
           "filesystem"
         ],
         "disallowedTools": [
-          "direct-product-api-for-user-journey"
+          "direct-product-api-for-user-journey",
+          "non-production-release-evidence"
         ],
         "skills": [
           "browser:control-in-app-browser"
@@ -628,10 +736,21 @@
           "loopCadence",
           "stopCondition",
           "dashboardEntryUi",
-          "fixPolicy"
+          "fixPolicy",
+          "finalGoal",
+          "phaseGoals",
+          "acceptanceCriteria",
+          "reportCadence",
+          "finalDecision"
         ],
         "stateFields": [
           "goal",
+          "finalGoal",
+          "phaseGoals",
+          "currentPhase",
+          "acceptanceCriteria",
+          "reportCadence",
+          "finalDecision",
           "attempt",
           "runTarget",
           "runtimeFlowType",
@@ -664,7 +783,22 @@
           "artifact files",
           "logs",
           "step validation matrix"
-        ]
+        ],
+        "goalWindow": {
+          "required": true,
+          "fields": [
+            "finalGoal",
+            "phaseGoals",
+            "currentPhase",
+            "acceptanceCriteria",
+            "reportCadence",
+            "finalDecision"
+          ],
+          "phaseGoalRequired": true,
+          "finalGoalRequired": true,
+          "acceptanceCriteriaRequired": true,
+          "finalDecisionRequired": true
+        }
       },
       "runtimeAdapters": {
         "codexGoal": {
