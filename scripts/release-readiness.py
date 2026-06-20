@@ -22,7 +22,7 @@ MANIFEST_DIR = REPO_ROOT / "manifests" / "agents"
 PLUGIN_DIR = REPO_ROOT / "plugins"
 PRODUCTION_REPRESENTATIVE_SANDBOX_DIR = REPO_ROOT / "sandbox" / "production-representative"
 SEMVER_RE = re.compile(r"^\d+\.\d+\.\d+$")
-PRODUCTION_RELEASE_RULE_SECTION = "Toolkit-Wide Production Release Rule"
+PRODUCTION_RELEASE_RULE_SECTION = "Platform-Wide Production Release Rule"
 LOOP_GOAL_WINDOW_SECTION = "Loop Goal Window"
 RELEASE_COVERAGE_MATRIX_SECTION = "Release Coverage Matrix Loop"
 LOOP_GOAL_WINDOW_FIELDS = {
@@ -79,7 +79,7 @@ def package_checks() -> list[dict[str, Any]]:
     checks: list[dict[str, Any]] = []
     package = read_json(REPO_ROOT / "package.json")
     license_file = REPO_ROOT / "LICENSE"
-    add(checks, "package-name", package.get("name") == "agent-octopus-toolkit", str(package.get("name")))
+    add(checks, "package-name", package.get("name") == "octopus-agentops", str(package.get("name")))
     add(checks, "package-version-semver", bool(SEMVER_RE.match(str(package.get("version", "")))), str(package.get("version")))
     add(checks, "package-public", package.get("private") is not True, "private must not be true for public release metadata")
     add(checks, "package-license", package.get("license") not in {"", None, "UNLICENSED"}, str(package.get("license")))

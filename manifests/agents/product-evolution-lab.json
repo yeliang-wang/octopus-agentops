@@ -286,7 +286,7 @@
   },
   "validation": {
     "requiredSections": [
-      "Toolkit-Wide Production Release Rule",
+      "Platform-Wide Production Release Rule",
       "Core Boundary",
       "Product Profile",
       "Protected Asset Boundary",

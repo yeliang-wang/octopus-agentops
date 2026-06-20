@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://agent-octopus-toolkit.local/schemas/plugin-manifest.schema.json",
+  "$id": "https://octopus-agentops.local/schemas/plugin-manifest.schema.json",
   "title": "agent-octopus plugin manifest",
   "type": "object",
   "required": [

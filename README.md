@@ -1,6 +1,6 @@
 # Octopus AgentOps
 
-Production-oriented agent workflow platform for Claude Code and Codex.
+Production-oriented AgentOps platform for Claude Code and Codex.
 
 Octopus AgentOps turns repeatable AI coding workflows into installable, versioned, and auditable agent plugins. It focuses on the work that must be dependable in real projects: Git/CI governance, MCP E2E lifecycle validation, real Dashboard user-flow debugging, production lifecycle validation, evidence collection, and cross-OS diagnostics.
 
@@ -8,7 +8,9 @@ The product goal is simple: manage agent operations as reusable product assets, 
 
 ## What Is This?
 
-`agent-octopus-toolkit` is the source repository for Octopus AgentOps. It provides:
+`octopus-agentops` is the source repository for Octopus AgentOps. It is a platform repository, not a set of separate agent projects. The packaged agents share the same contracts, release gates, sandbox, installation flow, and Codex/Claude Code distribution pipeline.
+
+It provides:
 
 - Specialized subagents for Claude Code and Codex.
 - Plugin manifests and generated catalogs for search and installation.
@@ -44,6 +46,25 @@ The product goal is simple: manage agent operations as reusable product assets, 
 | `production-lifecycle` | `production-lifecycle-governor` |
 | `product-evolution-lab` | `product-evolution-lab` |
 
+## Repository Strategy
+
+Octopus AgentOps keeps these agents in one platform repository because they share the same operational substrate:
+
+- `loopContract` and runtime adapters.
+- Manifest, plugin, catalog, and generated distribution contracts.
+- Codex `/goal` adapter and Claude Code Markdown distribution.
+- Release coverage matrix, evidence discipline, confirmation gates, and production release rules.
+- Portable sandbox, project profiles, install drift checks, eval, and release-readiness gates.
+
+Agents should graduate to an independent repository only when they have an independent user entrypoint, runtime, install package, issue surface, and release cadence. Until then, each product line should mature as a plugin inside this repository so shared platform behavior does not drift.
+
+| Product Line | Plugin Boundary | Split Readiness |
+| --- | --- | --- |
+| Production lifecycle governance | `plugins/production-lifecycle/` | Candidate only after it exposes an independent release-governance CLI/API and release cadence. |
+| MCP E2E governance | `plugins/mcp-e2e-governance/` | Candidate only after MCP E2E execution becomes a standalone product surface. |
+| SCM workflow governance | `plugins/git-workflow/` | Keep as a platform plugin unless it becomes a dedicated Git/CI agent product. |
+| Product evolution lab | `plugins/product-evolution-lab/` | Keep in-platform while it depends on shared profiles, runners, and evidence stores. |
+
 ## Who It Is For
 
 - Teams that reuse the same Claude Code / Codex workflows across multiple repositories.
@@ -74,7 +95,7 @@ Plugin contracts live in `plugins/<plugin>/plugin.json`. `scripts/generate-catal
 
 `npm run release:check` is the public-beta release gate. It checks package metadata, license, agent/plugin lifecycle state, loop contract coverage, Codex goal plans, generated outputs, deterministic eval, project-scoped Codex install drift, and whitespace safety.
 
-The release target is intentionally precise: Octopus AgentOps is a release-ready subagent toolkit and control plane, not a replacement for broad agent frameworks such as LangGraph, CrewAI, AutoGen, or OpenHands. See `docs/release-readiness.md` and `docs/competitive-baseline.md` for the release bar and comparison boundary.
+The release target is intentionally precise: Octopus AgentOps is a release-ready subagent operations platform and control plane, not a replacement for broad agent frameworks such as LangGraph, CrewAI, AutoGen, or OpenHands. See `docs/release-readiness.md` and `docs/competitive-baseline.md` for the release bar and comparison boundary.
 
 ### Portable Sandbox
 
@@ -134,13 +155,13 @@ This means a future prompt can be short, such as `Use production-lifecycle-gover
 
 ### Project Profile Runner
 
-Protocol is generic, and execution is generic through a project profile. A target project supplies `agent-octopus-project-profile/v1` with its health endpoints, real commands, real SCM/CI/CD/LLM boundaries, release evidence endpoint, release decision endpoint, coverage rows, and confirmed `targetPlan`. The toolkit runner consumes that profile without hard-coding project APIs:
+Protocol is generic, and execution is generic through a project profile. A target project supplies `agent-octopus-project-profile/v1` with its health endpoints, real commands, real SCM/CI/CD/LLM boundaries, release evidence endpoint, release decision endpoint, coverage rows, and confirmed `targetPlan`. The platform runner consumes that profile without hard-coding project APIs:
 
 ```bash
 npm run release:runner -- --profile project-profiles/examples/evopilot.ga.json
 ```
 
-The runner enforces `targetPlanConfirmation` before executing, writes compact `loop-state.json`, externalizes full iteration evidence under `artifacts/`, records summary events in `loop.jsonl`, and prints per-phase decision chains. When the loop exits, it writes `final-report.md` and `final-report.json` with a final target summary, every iteration's loop plan/target summary, the confirmed target plan, the latest coverage matrix, the final GA/release decision, blockers, and artifact paths. Project-specific behavior belongs in the profile or an adapter step; toolkit core owns loop execution, evidence discipline, state compaction, final reporting, and release decision governance.
+The runner enforces `targetPlanConfirmation` before executing, writes compact `loop-state.json`, externalizes full iteration evidence under `artifacts/`, records summary events in `loop.jsonl`, and prints per-phase decision chains. When the loop exits, it writes `final-report.md` and `final-report.json` with a final target summary, every iteration's loop plan/target summary, the confirmed target plan, the latest coverage matrix, the final GA/release decision, blockers, and artifact paths. Project-specific behavior belongs in the profile or an adapter step; platform core owns loop execution, evidence discipline, state compaction, final reporting, and release decision governance.
 
 ### Production Representative Sandbox
 
@@ -158,7 +179,7 @@ The included project set covers backend API, Dashboard UI, MCP/tool contract, ev
 
 For EvoPilot, use `sandbox/production-representative/profiles/evopilot.release-matrix.json` and `register-target.py` to register the generated projects through `/api/v1/projects`. If EvoPilot, Jenkins, GitLab, or GLM cannot verify the representative projects through real product boundaries, the release loop must mark those rows `BLOCKED` or `NO-GO`.
 
-### Toolkit-Wide Production Release Rule
+### Platform-Wide Production Release Rule
 
 All packaged subagents share the same release rule: when a task is product-grade, production-like, release-candidate, GA, or release-readiness work, do not use mock, fake, stub, simulator, fixture-only, demo-only, smoke-only, or chat-only evidence as production release evidence.
 
@@ -168,7 +189,7 @@ All packaged subagents share the same release rule: when a task is product-grade
 
 ### Codex-Native Goal Adapter
 
-Octopus AgentOps is Codex-first, not Codex-only. In Codex projects, `/goal` acts as the outer objective runtime while the installed toolkit agent remains the inner domain loop protocol.
+Octopus AgentOps is Codex-first, not Codex-only. In Codex projects, `/goal` acts as the outer objective runtime while the installed platform agent remains the inner domain loop protocol.
 
 ```text
 Codex /goal
@@ -201,7 +222,7 @@ See `integrations/codex/goal-adapter.md` and `examples/codex-goal/` for runnable
 
 `mcp-e2e-governor` governs MCP product journeys from code-first discovery to prompt confirmation, execution, assertions, diagnosis, and self-evolution proposal gating.
 
-`product-evolution-lab` runs external product-evolution pressure through configured product profiles. It does not assume a specific project layout. Configure product-specific readiness, E2E, improvement, and review behavior through product-owned commands or profile data; the toolkit stores status and run evidence under `data/product-evolution-lab/`.
+`product-evolution-lab` runs external product-evolution pressure through configured product profiles. It does not assume a specific project layout. Configure product-specific readiness, E2E, improvement, and review behavior through product-owned commands or profile data; Octopus AgentOps stores status and run evidence under `data/product-evolution-lab/`.
 
 `production-lifecycle-governor` turns the full production validation and release decision lifecycle into one reusable agent workflow. It first discovers real services, connected systems, data roots, traffic generators, lifecycle runners, LLM, SCM, and CI/CD boundaries, then builds a release coverage matrix with product-native evidence requirements and a per-phase decision chain. It then executes:
 
@@ -218,7 +239,7 @@ readiness
   -> GO / CONDITIONAL-GO / NO-GO
 ```
 
-Its production rule is strict and inherits the toolkit-wide release rule: product-grade validation cannot rely on mock/fake/stub/simulator/fixture-only/demo-only/smoke-only/chat-only evidence, chat-agent manual repair is not counted as production runtime capability, and validation duration must come from the user or discovered plan rather than hard-coded 2h/3h/24h scripts.
+Its production rule is strict and inherits the platform-wide release rule: product-grade validation cannot rely on mock/fake/stub/simulator/fixture-only/demo-only/smoke-only/chat-only evidence, chat-agent manual repair is not counted as production runtime capability, and validation duration must come from the user or discovered plan rather than hard-coded 2h/3h/24h scripts.
 
 ### Project-Scoped Codex Install
 
@@ -242,7 +263,7 @@ It reads agent and plugin metadata from manifest/catalog files, then supports se
 
 ## Problems It Solves
 
-| Without Toolkit | With Toolkit |
+| Without Octopus AgentOps | With Octopus AgentOps |
 | --- | --- |
 | Agents are copied manually across projects and drift silently. | Agents are installed from versioned plugin/catalog definitions and checked for drift. |
 | Agent instructions are edited without a contract. | Each agent has a manifest for inputs, outputs, evidence, gates, dangerous actions, and native capabilities. |
@@ -252,12 +273,12 @@ It reads agent and plugin metadata from manifest/catalog files, then supports se
 | User-flow validation bypasses the real UI. | `user-flow-debug` requires real Dashboard operation and screenshot evidence. |
 | Production validation accidentally uses mock/demo paths. | `production-lifecycle-governor` blocks product-grade claims unless real boundaries are proven. |
 | Long-running loops prove service health but miss core release scenarios. | Release coverage matrix loop requires scenario rows, evidence mapping, repair policy, and per-phase decision chains. |
-| Installed-project edits flow back without review. | Offline proposals are generated and accepted only by the toolkit maintainer. |
+| Installed-project edits flow back without review. | Offline proposals are generated and accepted only by the Octopus AgentOps maintainer. |
 
 ## What's Under The Hood
 
 ```text
-agent-octopus-toolkit
+octopus-agentops
 ├── agents/                         Canonical Claude Code Markdown agents
 ├── bin/octopus-sandbox             Portable diagnostics entrypoint
 ├── integrations/
@@ -301,16 +322,17 @@ find-artifacts     Inspect output/runs/<runId>/ artifacts and final/manifest.jso
 
 ## Quickstart
 
-Clone or enter the toolkit checkout:
+Clone or enter the Octopus AgentOps checkout:
 
 ```bash
-cd /Users/wangyejing/github/agent-octopus-toolkit
+cd /Users/wangyejing/github/octopus-agentops
 ```
 
-Set the toolkit path:
+Set the platform path. `AGENT_OCTOPUS_TOOLKIT_HOME` remains supported as a compatibility alias for existing installed agents.
 
 ```bash
-export AGENT_OCTOPUS_TOOLKIT_HOME=/Users/wangyejing/github/agent-octopus-toolkit
+export OCTOPUS_AGENTOPS_HOME=/Users/wangyejing/github/octopus-agentops
+export AGENT_OCTOPUS_TOOLKIT_HOME="$OCTOPUS_AGENTOPS_HOME"
 ```
 
 Install into Claude Code:
@@ -323,37 +345,37 @@ Install into the current project's Codex agents:
 
 ```bash
 cd /path/to/your/project
-/Users/wangyejing/github/agent-octopus-toolkit/scripts/install.sh --tool codex
+/Users/wangyejing/github/octopus-agentops/scripts/install.sh --tool codex
 ```
 
 Preview install output without writing files:
 
 ```bash
-/Users/wangyejing/github/agent-octopus-toolkit/scripts/install.sh --tool codex --dry-run
+/Users/wangyejing/github/octopus-agentops/scripts/install.sh --tool codex --dry-run
 ```
 
 Install or update one agent:
 
 ```bash
-/Users/wangyejing/github/agent-octopus-toolkit/scripts/install.sh --tool codex --agent mcp-e2e-governor --update
+/Users/wangyejing/github/octopus-agentops/scripts/install.sh --tool codex --agent mcp-e2e-governor --update
 ```
 
 Auto-install into detected tools:
 
 ```bash
-/Users/wangyejing/github/agent-octopus-toolkit/scripts/install.sh
+/Users/wangyejing/github/octopus-agentops/scripts/install.sh
 ```
 
 Validate the sandbox:
 
 ```bash
-/Users/wangyejing/github/agent-octopus-toolkit/bin/octopus-sandbox doctor
+/Users/wangyejing/github/octopus-agentops/bin/octopus-sandbox doctor
 ```
 
 Validate product contracts:
 
 ```bash
-cd /Users/wangyejing/github/agent-octopus-toolkit
+cd /Users/wangyejing/github/octopus-agentops
 npm run validate
 ```
 
@@ -414,26 +436,26 @@ time-driven 本地调试示例：
 
 ## Update Installed Agents
 
-Install/update is copy-based. After `agent-octopus-toolkit` is updated, refresh this checkout first and then rerun the installer from each target location.
+Install/update is copy-based. After `octopus-agentops` is updated, refresh this checkout first and then rerun the installer from each target location.
 
 If this is a Git checkout:
 
 ```bash
-cd /Users/wangyejing/github/agent-octopus-toolkit
+cd /Users/wangyejing/github/octopus-agentops
 git pull
 ```
 
 Update Claude Code agents:
 
 ```bash
-/Users/wangyejing/github/agent-octopus-toolkit/scripts/install.sh --tool claude-code --update
+/Users/wangyejing/github/octopus-agentops/scripts/install.sh --tool claude-code --update
 ```
 
 Update Codex agents in a project:
 
 ```bash
 cd /path/to/your/project
-/Users/wangyejing/github/agent-octopus-toolkit/scripts/install.sh --tool codex --update
+/Users/wangyejing/github/octopus-agentops/scripts/install.sh --tool codex --update
 ```
 
 Codex agents are project-scoped. Every project that has installed `.codex/agents/` should be updated from that project root.
@@ -447,16 +469,16 @@ Flow:
 ```text
 installed project edit
   -> propose-changes.py creates an offline proposal
-  -> toolkit maintainer reviews diff
-  -> apply-proposal.py --accept writes accepted files into toolkit
-  -> maintainer commits and pushes toolkit
+  -> Octopus AgentOps maintainer reviews diff
+  -> apply-proposal.py --accept writes accepted files into the platform repository
+  -> maintainer commits and pushes Octopus AgentOps
 ```
 
 Create a proposal from a project with installed Codex agents:
 
 ```bash
 cd /path/to/your/project
-/Users/wangyejing/github/agent-octopus-toolkit/scripts/propose-changes.py \
+/Users/wangyejing/github/octopus-agentops/scripts/propose-changes.py \
   --tool codex \
   --title "improve scm-sync-governor for project X"
 ```
@@ -476,14 +498,14 @@ The target project only needs to hand this directory to the Octopus AgentOps mai
 Review from the source repository:
 
 ```bash
-/Users/wangyejing/github/agent-octopus-toolkit/scripts/apply-proposal.py \
+/Users/wangyejing/github/octopus-agentops/scripts/apply-proposal.py \
   /path/to/proposal-YYYYMMDD-HHMMSS
 ```
 
 Write into the source repository only after acceptance:
 
 ```bash
-/Users/wangyejing/github/agent-octopus-toolkit/scripts/apply-proposal.py \
+/Users/wangyejing/github/octopus-agentops/scripts/apply-proposal.py \
   /path/to/proposal-YYYYMMDD-HHMMSS \
   --accept
 ```
@@ -491,7 +513,7 @@ Write into the source repository only after acceptance:
 Accept one file only:
 
 ```bash
-/Users/wangyejing/github/agent-octopus-toolkit/scripts/apply-proposal.py \
+/Users/wangyejing/github/octopus-agentops/scripts/apply-proposal.py \
   /path/to/proposal-YYYYMMDD-HHMMSS \
   --file integrations/codex/agents/scm-sync-governor.toml \
   --accept
@@ -566,7 +588,7 @@ npm run validate
 npm run generate -- --check
 npm run eval
 npm run release:check
-/Users/wangyejing/github/agent-octopus-toolkit/scripts/install.sh --tool codex --dry-run
+/Users/wangyejing/github/octopus-agentops/scripts/install.sh --tool codex --dry-run
 ```
 
 When adding reusable diagnostics, put them in `sandbox/octopus_sandbox.py`, then update the related agent instructions, generated Codex TOML, and manifest. Do not duplicate diagnostic scripts inside target projects.

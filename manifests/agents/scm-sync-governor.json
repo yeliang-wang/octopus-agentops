@@ -255,7 +255,7 @@
   },
   "validation": {
     "requiredSections": [
-      "Toolkit-Wide Production Release Rule",
+      "Platform-Wide Production Release Rule",
       "Defaults",
       "Goal-Driven Loop Mode",
       "Branch And Change Request Discipline",

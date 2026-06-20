@@ -3,7 +3,7 @@
 
 This script is meant to run from a project where Octopus AgentOps agents
 were installed. It does not require GitLab/GitHub permissions and does not
-write back into the toolkit source tree.
+write back into the platform source tree.
 """
 
 from __future__ import annotations
@@ -136,11 +136,11 @@ def main() -> int:
         "This package is a review proposal. It does not automatically update the Octopus AgentOps source repository.\n\n"
         "Review with:\n\n"
         "```bash\n"
-        "/path/to/agent-octopus-toolkit/scripts/apply-proposal.py /path/to/proposal\n"
+        "/path/to/octopus-agentops/scripts/apply-proposal.py /path/to/proposal\n"
         "```\n\n"
         "Accept with:\n\n"
         "```bash\n"
-        "/path/to/agent-octopus-toolkit/scripts/apply-proposal.py /path/to/proposal --accept\n"
+        "/path/to/octopus-agentops/scripts/apply-proposal.py /path/to/proposal --accept\n"
         "```\n",
     )
 

@@ -273,7 +273,7 @@
   },
   "validation": {
     "requiredSections": [
-      "Toolkit-Wide Production Release Rule",
+      "Platform-Wide Production Release Rule",
       "Required Inputs",
       "Runtime Flow Discovery",
       "No Built-In Scenario Defaults",

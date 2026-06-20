@@ -1,6 +1,6 @@
 # Release Readiness
 
-Octopus AgentOps uses a public-beta release bar. The toolkit can be released when its subagents are installable, loop-capable, drift-checkable, and auditable from the local checkout.
+Octopus AgentOps uses a public-beta release bar. The platform can be released when its subagents are installable, loop-capable, drift-checkable, and auditable from the local checkout.
 
 ## Release Level
 
@@ -16,7 +16,7 @@ This means:
 - Deterministic eval and install roundtrip pass.
 - Package metadata and license are ready for public distribution.
 
-It does not mean the toolkit is a general-purpose agent runtime or orchestration framework.
+It does not mean Octopus AgentOps is a general-purpose agent runtime or orchestration framework.
 
 ## Required Gate
 
@@ -91,11 +91,11 @@ nextAction:
 
 ## Project Profile Execution
 
-Release execution is generic through `agent-octopus-project-profile/v1`. The project profile is the anti-corruption layer between toolkit governance and a target product runtime:
+Release execution is generic through `agent-octopus-project-profile/v1`. The project profile is the anti-corruption layer between platform governance and a target product runtime:
 
-- toolkit core owns loop cadence, target plan confirmation, compact state, artifact externalization, event logs, coverage status, blocker policy, and decision-chain reporting.
+- platform core owns loop cadence, target plan confirmation, compact state, artifact externalization, event logs, coverage status, blocker policy, and decision-chain reporting.
 - project profiles declare health endpoints, commands, HTTP checks, external boundaries, production representative registration, release evidence, and product-native release decisions.
-- optional project adapters may translate target-product APIs into the profile contract, but they must not weaken toolkit release rules.
+- optional project adapters may translate target-product APIs into the profile contract, but they must not weaken platform release rules.
 
 The generic runner is:
 
@@ -134,7 +134,7 @@ These projects count as release evidence only after all of the following are pro
 
 If any required boundary is missing, inaccessible, or replaced by a non-production substitute, the affected matrix row is `BLOCKED` or `NO-GO`. Template-only, mock-only, fixture-only, smoke-only, or chat-only representative projects do not count as release evidence.
 
-## Toolkit-Wide Production Release Rule
+## Platform-Wide Production Release Rule
 
 For product-grade, production-like, release-candidate, GA, or release-readiness work, no packaged subagent may use mock, fake, stub, simulator, fixture-only, demo-only, smoke-only, or chat-only evidence as production release evidence.
 

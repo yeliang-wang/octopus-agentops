@@ -303,7 +303,7 @@
   },
   "validation": {
     "requiredSections": [
-      "Toolkit-Wide Production Release Rule",
+      "Platform-Wide Production Release Rule",
       "Mission",
       "Non-Negotiable Production Rule",
       "Latest-Instruction Guard",

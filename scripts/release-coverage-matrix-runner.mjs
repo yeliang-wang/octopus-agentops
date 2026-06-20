@@ -218,7 +218,7 @@ function buildReleaseEvidenceBody({ coverageMatrix, latestSummary, attempt }) {
     id: `${profile.projectId}-${profile.releaseTarget.toLowerCase()}-${safeTimestamp(new Date())}-i${attempt}`,
     projectId: profile.projectId,
     target: profile.releaseTarget,
-    source: "agent-octopus-toolkit release-coverage-matrix-runner",
+    source: "octopus-agentops release-coverage-matrix-runner",
     summary: compactSummary(unwrapData(latestSummary)),
     scenarioMatrix: matrix,
     policyEvaluations: matrix.map((item) => ({

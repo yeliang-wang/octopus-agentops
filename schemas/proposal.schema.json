@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://agent-octopus-toolkit.local/schemas/proposal.schema.json",
+  "$id": "https://octopus-agentops.local/schemas/proposal.schema.json",
   "title": "agent-octopus offline proposal manifest",
   "type": "object",
   "required": ["schema", "title", "created_at", "tool", "toolkit_root", "project_root", "changes"],

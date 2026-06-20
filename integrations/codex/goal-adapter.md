@@ -1,6 +1,6 @@
 # Codex Goal Runtime Adapter
 
-Codex `/goal` is the outer objective runtime for Octopus AgentOps agents. The toolkit loop contract remains runtime-neutral; Codex only supplies a persistent goal driver for environments where the `goals` feature is enabled.
+Codex `/goal` is the outer objective runtime for Octopus AgentOps agents. The platform loop contract remains runtime-neutral; Codex only supplies a persistent goal driver for environments where the `goals` feature is enabled.
 
 ## Boundary
 
@@ -66,4 +66,4 @@ If the agent cannot establish the loop goal window or write these artifacts in t
 - Treat health checks, smoke checks, and process keepalive as connectivity evidence only; they are not release coverage by themselves.
 - When the same blocker repeats, switch from rerun into diagnosis, productized repair, and verification, or stop as `BLOCKED` / `NO-GO`.
 - Do not silently accept self-evolution candidates as new loop rules.
-- Do not promote project-specific runtime facts into generic toolkit instructions.
+- Do not promote project-specific runtime facts into generic platform instructions.

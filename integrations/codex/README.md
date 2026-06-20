@@ -4,7 +4,7 @@ Codex agents are installed as TOML files from `integrations/codex/agents/`.
 
 Canonical reusable agent sources live under `agents/`. The TOML files here are generated Codex distributions from those sources and `manifests/agents/*.json`.
 
-Each Codex agent must be declared in `manifests/agents/<agent>.json` and assigned to a plugin in `plugins/<plugin>/plugin.json`. Run `npm run generate`, `npm run validate`, and `npm run eval` from the toolkit root before installing or updating downstream projects.
+Each Codex agent must be declared in `manifests/agents/<agent>.json` and assigned to a plugin in `plugins/<plugin>/plugin.json`. Run `npm run generate`, `npm run validate`, and `npm run eval` from the Octopus AgentOps root before installing or updating downstream projects.
 
 ## Codex Goal Adapter
 
@@ -31,14 +31,14 @@ Install them into a project-scoped `.codex/agents/` directory:
 
 ```bash
 cd /path/to/your/project
-/Users/wangyejing/github/agent-octopus-toolkit/scripts/install.sh --tool codex
+/Users/wangyejing/github/octopus-agentops/scripts/install.sh --tool codex
 ```
 
 Manual install:
 
 ```bash
 mkdir -p /path/to/your/project/.codex/agents
-cp /Users/wangyejing/github/agent-octopus-toolkit/integrations/codex/agents/*.toml \
+cp /Users/wangyejing/github/octopus-agentops/integrations/codex/agents/*.toml \
   /path/to/your/project/.codex/agents/
 ```
 
@@ -53,7 +53,7 @@ Treat `mcp-e2e-governor` as an MCP intelligent-agent E2E lifecycle governor:
 - Execute from the MCP boundary first, then diagnose with HTTP/CLI/worker/filesystem only when the project profile allows it or when diagnosing an MCP-facing failure.
 - Apply code fixes only after a reproduced failing assertion or compile/startup failure, and only in the smallest owning module.
 - After each completed or failed E2E, produce a self-evolution proposal report from process/result evidence.
-- Stop after printing the proposal report and ask the user which candidates may be applied. Pending proposals must not be treated as accepted profile, use-case, or toolkit rules.
+- Stop after printing the proposal report and ask the user which candidates may be applied. Pending proposals must not be treated as accepted profile, use-case, or platform rules.
 
 ## user-flow-debug Notes
 
@@ -75,14 +75,14 @@ After Octopus AgentOps is updated or a new version is released, run the installe
 
 ```bash
 cd /path/to/your/project
-/Users/wangyejing/github/agent-octopus-toolkit/scripts/install.sh --tool codex --update
+/Users/wangyejing/github/octopus-agentops/scripts/install.sh --tool codex --update
 ```
 
-The update is project-scoped and overwrites toolkit agents with the latest files from `integrations/codex/agents/`.
+The update is project-scoped and overwrites Octopus AgentOps agents with the latest files from `integrations/codex/agents/`.
 
 Dry-run a project-scoped update without writing files:
 
 ```bash
 cd /path/to/your/project
-/Users/wangyejing/github/agent-octopus-toolkit/scripts/install.sh --tool codex --update --dry-run
+/Users/wangyejing/github/octopus-agentops/scripts/install.sh --tool codex --update --dry-run
 ```

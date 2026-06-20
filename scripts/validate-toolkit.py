@@ -47,7 +47,7 @@ PRODUCTION_REPRESENTATIVE_BOUNDARIES = {
     "llm-or-runtime",
     "product-native-evidence",
 }
-PRODUCTION_RELEASE_RULE_SECTION = "Toolkit-Wide Production Release Rule"
+PRODUCTION_RELEASE_RULE_SECTION = "Platform-Wide Production Release Rule"
 PRODUCTION_RELEASE_RULE_PHRASES = [
     "Smoke checks may prove connectivity only",
     "product-native release evidence",
@@ -315,7 +315,7 @@ def validate_manifest_shape(path: Path, manifest: dict) -> None:
     require(isinstance(boundaries.get("forbidden"), list) and boundaries["forbidden"], f"{rel(path)}: boundaries.forbidden is required")
     require(
         NON_PRODUCTION_RELEASE_EVIDENCE_FORBIDDEN in boundaries["forbidden"],
-        f"{rel(path)}: boundaries.forbidden missing toolkit-wide production release rule",
+        f"{rel(path)}: boundaries.forbidden missing platform-wide production release rule",
     )
 
     validation = manifest["validation"]
@@ -461,7 +461,7 @@ def validate_agent_files(path: Path, manifest: dict) -> None:
             require(phrase in codex_instructions, f"{rel(codex)}: Codex goal adapter phrase missing: {phrase}")
 
     combined_text = source.read_text(encoding="utf-8") + "\n" + codex.read_text(encoding="utf-8")
-    require(f"## {PRODUCTION_RELEASE_RULE_SECTION}" in markdown_body, f"{rel(source)}: toolkit-wide production release rule section missing")
+    require(f"## {PRODUCTION_RELEASE_RULE_SECTION}" in markdown_body, f"{rel(source)}: platform-wide production release rule section missing")
     require(f"## {LOOP_GOAL_WINDOW_SECTION}" in markdown_body, f"{rel(source)}: loop goal window section missing")
     require(f"## {RELEASE_COVERAGE_MATRIX_SECTION}" in markdown_body, f"{rel(source)}: release coverage matrix loop section missing")
     for phrase in manifest["validation"]["requiredPhrases"]:

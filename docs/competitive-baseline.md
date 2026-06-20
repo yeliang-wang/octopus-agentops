@@ -23,7 +23,7 @@ Octopus AgentOps is narrower:
 - It checks drift in target projects.
 - It adds Codex `/goal` loop plans without owning the model runtime.
 
-This scope is intentional. The toolkit should be judged as a release-ready subagent operations package, not as a general agent framework.
+This scope is intentional. Octopus AgentOps should be judged as a release-ready subagent operations platform, not as a general agent framework.
 
 ## Release Parity Requirements
 
@@ -42,7 +42,7 @@ For public-beta parity with mainstream projects, this repo must provide:
 
 ## Non-Goals
 
-The toolkit does not aim to become:
+Octopus AgentOps does not aim to become:
 
 - A graph runtime.
 - A model API wrapper.

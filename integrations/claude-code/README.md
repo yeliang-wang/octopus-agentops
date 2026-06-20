@@ -2,12 +2,12 @@
 
 Claude Code can use the Markdown agents in `agents/` directly because they use YAML frontmatter plus Markdown instructions.
 
-The product contract for each agent lives in `manifests/agents/<agent>.json`, and plugin packaging lives in `plugins/<plugin>/plugin.json`. Run `npm run validate` and `npm run eval` from the toolkit root before publishing updates.
+The product contract for each agent lives in `manifests/agents/<agent>.json`, and plugin packaging lives in `plugins/<plugin>/plugin.json`. Run `npm run validate` and `npm run eval` from the Octopus AgentOps root before publishing updates.
 
 ## Install
 
 ```bash
-cd /Users/wangyejing/github/agent-octopus-toolkit
+cd /Users/wangyejing/github/octopus-agentops
 ./scripts/install.sh --tool claude-code
 ```
 
@@ -15,7 +15,7 @@ Manual install:
 
 ```bash
 mkdir -p ~/.claude/agents
-cp /Users/wangyejing/github/agent-octopus-toolkit/agents/*.md ~/.claude/agents/
+cp /Users/wangyejing/github/octopus-agentops/agents/*.md ~/.claude/agents/
 ```
 
 ## Use
@@ -37,7 +37,7 @@ cp /Users/wangyejing/github/agent-octopus-toolkit/agents/*.md ~/.claude/agents/
 After Octopus AgentOps is updated or a new version is released, run:
 
 ```bash
-/Users/wangyejing/github/agent-octopus-toolkit/scripts/install.sh --tool claude-code --update
+/Users/wangyejing/github/octopus-agentops/scripts/install.sh --tool claude-code --update
 ```
 
-The update overwrites toolkit agents in `~/.claude/agents/` with the latest files from `agents/`.
+The update overwrites Octopus AgentOps agents in `~/.claude/agents/` with the latest files from `agents/`.
