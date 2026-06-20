@@ -100,7 +100,7 @@ async function runIteration(attempt) {
         status = evidence.ok ? "PASS" : "BLOCKED";
         blocker = evidence.ok ? "" : evidence.error ?? `HTTP status ${evidence.status}`;
       } else if (step.type === "command") {
-        evidence = await runCommand(step.command, step.args ?? [], { cwd: path.resolve(projectRoot, step.cwd ?? "."), timeoutMs: step.timeoutMs });
+        evidence = await runCommand(step.command, step.args ?? [], { cwd: path.resolve(projectRoot, step.cwd ?? "."), timeoutMs: step.timeoutMs, env: step.env, envUnset: step.envUnset });
         commands.push({ id: step.id, ...evidence });
         status = evidence.code === 0 ? "PASS" : "FAIL";
         blocker = evidence.code === 0 ? "" : `${step.command} ${(step.args ?? []).join(" ")} exited ${evidence.code}`;
@@ -599,7 +599,8 @@ function compactResult(result) {
 async function runCommand(command, commandArgs, options = {}) {
   const started = Date.now();
   return new Promise((resolve) => {
-    const child = spawn(command, commandArgs, { cwd: options.cwd ?? projectRoot, env: process.env, shell: false });
+    const commandEnv = buildCommandEnv(options);
+    const child = spawn(command, commandArgs, { cwd: options.cwd ?? projectRoot, env: commandEnv, shell: false });
     let stdout = "";
     let stderr = "";
     const timer = setTimeout(() => {
@@ -610,13 +611,22 @@ async function runCommand(command, commandArgs, options = {}) {
     child.stderr.on("data", (chunk) => { stderr += chunk; });
     child.on("close", (code) => {
       clearTimeout(timer);
-      const result = { code, durationMs: Date.now() - started, stdoutTail: tail(stdout), stderrTail: tail(stderr) };
+      const result = { code, durationMs: Date.now() - started, stdoutTail: redactSensitiveText(tail(stdout)), stderrTail: redactSensitiveText(tail(stderr)) };
       Object.defineProperty(result, "stdoutText", { value: stdout, enumerable: false });
       Object.defineProperty(result, "stderrText", { value: stderr, enumerable: false });
       fs.appendFileSync(textLogPath, `\n\n$ ${command} ${commandArgs.join(" ")}\nexit=${code} durationMs=${result.durationMs}\n--- stdout tail ---\n${result.stdoutTail}\n--- stderr tail ---\n${result.stderrTail}\n`, "utf8");
       resolve(result);
     });
   });
+}
+
+function buildCommandEnv(options = {}) {
+  const env = { ...process.env };
+  for (const name of options.envUnset ?? []) delete env[name];
+  for (const [key, value] of Object.entries(options.env ?? {})) {
+    env[key] = String(value);
+  }
+  return env;
 }
 
 function loadEnvFile(filePath) {
@@ -652,6 +662,12 @@ function append(event) {
 
 function tail(text, max = 5000) {
   return String(text ?? "").slice(-max);
+}
+
+function redactSensitiveText(text) {
+  return String(text ?? "")
+    .replace(/glpat-[A-Za-z0-9_-]+/g, "[REDACTED]")
+    .replace(/(token|password|secret|credential|api[_-]?key)([=:\s]+)([^\s"',}]+)/gi, "$1$2[REDACTED]");
 }
 
 function sleep(ms) {
