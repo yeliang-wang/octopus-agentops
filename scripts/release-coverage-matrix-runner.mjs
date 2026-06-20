@@ -183,7 +183,7 @@ async function runSandboxRegister(step) {
   const command = await runCommand("python3", registerArgs, { cwd: repoRoot, timeoutMs: step.timeoutMs ?? 5 * 60 * 1000 });
   let parsed;
   try {
-    parsed = JSON.parse(command.stdoutTail);
+    parsed = JSON.parse(command.stdoutText);
   } catch {
     parsed = undefined;
   }
@@ -422,6 +422,8 @@ async function runCommand(command, commandArgs, options = {}) {
     child.on("close", (code) => {
       clearTimeout(timer);
       const result = { code, durationMs: Date.now() - started, stdoutTail: tail(stdout), stderrTail: tail(stderr) };
+      Object.defineProperty(result, "stdoutText", { value: stdout, enumerable: false });
+      Object.defineProperty(result, "stderrText", { value: stderr, enumerable: false });
       fs.appendFileSync(textLogPath, `\n\n$ ${command} ${commandArgs.join(" ")}\nexit=${code} durationMs=${result.durationMs}\n--- stdout tail ---\n${result.stdoutTail}\n--- stderr tail ---\n${result.stderrTail}\n`, "utf8");
       resolve(result);
     });
