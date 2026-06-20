@@ -283,7 +283,8 @@
       "Safety Rules",
       "Final Response Shape",
       "Loop Goal Window",
-      "Release Coverage Matrix Loop"
+      "Release Coverage Matrix Loop",
+      "Production Representative Sandbox"
     ],
     "requiredPhrases": [
       "BLOCKED: product closed loop is not ready",
@@ -305,7 +306,10 @@
       "repeated blocker",
       "decisionChain",
       "per-phase decision chain",
-      "阶段决策链"
+      "阶段决策链",
+      "Production Representative Sandbox",
+      "production-representative/manifest.json",
+      "real target-product registration"
     ]
   }
 }

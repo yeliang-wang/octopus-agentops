@@ -14,6 +14,7 @@ The product goal is simple: manage agent operations as reusable product assets, 
 - Plugin manifests and generated catalogs for search and installation.
 - Agent product contracts for inputs, outputs, evidence, confirmation gates, dangerous actions, and native runtime capabilities.
 - Runtime-neutral loop contracts with a Codex `/goal` adapter for Codex-native release workflows.
+- A shared Production Representative Sandbox for local release coverage matrix loops when real customer production projects are not available.
 - Generated Codex distributions from canonical Markdown agent sources.
 - Deterministic validation and eval scripts.
 - Release-readiness gates for public beta distribution.
@@ -129,6 +130,22 @@ The matrix keeps the loop tied to product behavior rather than process keepalive
 
 This means a future prompt can be short, such as `Use production-lifecycle-governor to take this project through a release coverage matrix loop toward public-beta readiness.` The agent is responsible for discovering product-specific coverage rows and printing the decision chain for each phase.
 
+### Production Representative Sandbox
+
+When a local environment has no real customer production projects, Octopus AgentOps provides a shared `Production Representative Sandbox` under `sandbox/production-representative/`. It creates representative projects that can be registered into a target product and used as release coverage matrix rows.
+
+The sandbox is reusable across all packaged subagents. Its source contract is `sandbox/production-representative/manifest.json`; generated repositories are written under `data/production-representative-sandbox/` and are intentionally ignored by git.
+
+```bash
+npm run sandbox:verify
+python3 sandbox/production-representative/scripts/create-projects.py --force
+python3 sandbox/production-representative/scripts/verify-sandbox.py --generated
+```
+
+The included project set covers backend API, Dashboard UI, MCP/tool contract, evidence data pipeline, and quality-gate failure/repair behavior. These projects count as release evidence only after they use real Git repositories, real validation commands, real target-product registration, real SCM, real CI/CD, real LLM/runtime boundaries, and persisted product-native evidence. Template-only, mock-only, fixture-only, smoke-only, or chat-only projects do not count.
+
+For EvoPilot, use `sandbox/production-representative/profiles/evopilot.release-matrix.json` and `register-target.py` to register the generated projects through `/api/v1/projects`. If EvoPilot, Jenkins, GitLab, or GLM cannot verify the representative projects through real product boundaries, the release loop must mark those rows `BLOCKED` or `NO-GO`.
+
 ### Toolkit-Wide Production Release Rule
 
 All packaged subagents share the same release rule: when a task is product-grade, production-like, release-candidate, GA, or release-readiness work, do not use mock, fake, stub, simulator, fixture-only, demo-only, smoke-only, or chat-only evidence as production release evidence.
@@ -206,6 +223,7 @@ npm run agents:search -- mcp
 npm run agents:goal-plan -- --agent mcp-e2e-governor --project-id your-project "Prove the MCP onboarding journey"
 npm run agents:install -- --plugin mcp-e2e-governance --project-root /path/to/your/project
 npm run agents:codex-status -- --project-root /path/to/your/project
+npm run sandbox:verify
 ```
 
 It reads agent and plugin metadata from manifest/catalog files, then supports search, plugin-scoped installs, proposal listing, and `.codex/agents/` drift checks.

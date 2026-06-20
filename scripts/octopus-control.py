@@ -310,6 +310,36 @@ def cmd_proposals(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_sandbox_verify(args: argparse.Namespace) -> int:
+    command = [
+        sys.executable,
+        str(REPO_ROOT / "sandbox" / "production-representative" / "scripts" / "verify-sandbox.py"),
+    ]
+    if args.output_root:
+        command.extend(["--output-root", args.output_root])
+    if args.generated:
+        command.append("--generated")
+    if args.include_fault:
+        command.append("--include-fault")
+    if args.json:
+        command.append("--json")
+    return subprocess.run(command, cwd=REPO_ROOT).returncode
+
+
+def cmd_sandbox_create(args: argparse.Namespace) -> int:
+    command = [
+        sys.executable,
+        str(REPO_ROOT / "sandbox" / "production-representative" / "scripts" / "create-projects.py"),
+        "--output-root",
+        args.output_root,
+    ]
+    if args.force:
+        command.append("--force")
+    if args.skip_validation:
+        command.append("--skip-validation")
+    return subprocess.run(command, cwd=REPO_ROOT).returncode
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Octopus AgentOps control plane")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -351,6 +381,19 @@ def build_parser() -> argparse.ArgumentParser:
     proposal_parser.add_argument("--project-root", default=".")
     proposal_parser.add_argument("--json", action="store_true")
     proposal_parser.set_defaults(func=cmd_proposals)
+
+    sandbox_verify_parser = sub.add_parser("sandbox-verify", help="Verify the production representative sandbox")
+    sandbox_verify_parser.add_argument("--output-root", default=str(REPO_ROOT / "data" / "production-representative-sandbox"))
+    sandbox_verify_parser.add_argument("--generated", action="store_true")
+    sandbox_verify_parser.add_argument("--include-fault", action="store_true")
+    sandbox_verify_parser.add_argument("--json", action="store_true")
+    sandbox_verify_parser.set_defaults(func=cmd_sandbox_verify)
+
+    sandbox_create_parser = sub.add_parser("sandbox-create", help="Create production representative project repositories")
+    sandbox_create_parser.add_argument("--output-root", default=str(REPO_ROOT / "data" / "production-representative-sandbox"))
+    sandbox_create_parser.add_argument("--force", action="store_true")
+    sandbox_create_parser.add_argument("--skip-validation", action="store_true")
+    sandbox_create_parser.set_defaults(func=cmd_sandbox_create)
 
     return parser
 

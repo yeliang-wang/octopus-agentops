@@ -28,8 +28,24 @@ AGENTS_DIR = REPO_ROOT / "agents"
 CODEX_AGENT_DIR = REPO_ROOT / "integrations" / "codex" / "agents"
 SCHEMA_DIR = REPO_ROOT / "schemas"
 CATALOG_DIR = REPO_ROOT / "catalog"
+PRODUCTION_REPRESENTATIVE_SANDBOX_DIR = REPO_ROOT / "sandbox" / "production-representative"
 AGENT_ID_RE = re.compile(r"^[a-z0-9][a-z0-9-]*$")
 VERSION_RE = re.compile(r"^\d+\.\d+\.\d+$")
+PRODUCTION_REPRESENTATIVE_PROJECTS = {
+    "node-service",
+    "web-dashboard",
+    "mcp-tooling",
+    "data-pipeline",
+    "flaky-quality-gate",
+}
+PRODUCTION_REPRESENTATIVE_BOUNDARIES = {
+    "git",
+    "target-product-registration",
+    "scm",
+    "ci-cd",
+    "llm-or-runtime",
+    "product-native-evidence",
+}
 PRODUCTION_RELEASE_RULE_SECTION = "Toolkit-Wide Production Release Rule"
 PRODUCTION_RELEASE_RULE_PHRASES = [
     "Smoke checks may prove connectivity only",
@@ -159,6 +175,51 @@ def validate_schema_files() -> None:
         schema = read_json(path)
         require(schema.get("$schema"), f"{rel(path)}: missing $schema")
         require(schema.get("title"), f"{rel(path)}: missing title")
+
+
+def validate_production_representative_sandbox() -> None:
+    root = PRODUCTION_REPRESENTATIVE_SANDBOX_DIR
+    manifest_path = root / "manifest.json"
+    schema_path = root / "manifest.schema.json"
+    evopilot_profile_path = root / "profiles" / "evopilot.release-matrix.json"
+    require(root.exists(), f"{rel(root)}: production representative sandbox missing")
+    require(manifest_path.exists(), f"{rel(manifest_path)}: sandbox manifest missing")
+    require(schema_path.exists(), f"{rel(schema_path)}: sandbox schema missing")
+    require(evopilot_profile_path.exists(), f"{rel(evopilot_profile_path)}: EvoPilot target profile missing")
+
+    manifest = read_json(manifest_path)
+    require(manifest.get("schema") == "agent-octopus-production-representative-sandbox/v1", f"{rel(manifest_path)}: invalid schema")
+    require(manifest.get("id") == "production-representative-sandbox", f"{rel(manifest_path)}: invalid id")
+    require(bool(VERSION_RE.match(str(manifest.get("version", "")))), f"{rel(manifest_path)}: invalid version")
+    release_rule = str(manifest.get("releaseEvidenceRule", ""))
+    for phrase in ["real Git repositories", "real validation commands", "real target-product registration", "real SCM", "real CI/CD", "real LLM/runtime boundaries", "product-native evidence", "mock-only", "smoke-only"]:
+        require(phrase in release_rule, f"{rel(manifest_path)}: releaseEvidenceRule missing {phrase}")
+
+    boundaries = set(manifest.get("requiredBoundaries", []))
+    require(PRODUCTION_REPRESENTATIVE_BOUNDARIES.issubset(boundaries), f"{rel(manifest_path)}: requiredBoundaries incomplete")
+    project_ids = {project.get("id") for project in manifest.get("projects", [])}
+    require(PRODUCTION_REPRESENTATIVE_PROJECTS.issubset(project_ids), f"{rel(manifest_path)}: representative project set incomplete")
+    require(set(manifest.get("sharedByAgents", [])) == {path.stem for path in MANIFEST_DIR.glob("*.json")}, f"{rel(manifest_path)}: sharedByAgents must match packaged agents")
+
+    for project in manifest["projects"]:
+        project_path = root / project["template"]
+        require(project_path.exists(), f"{rel(project_path)}: project template missing")
+        require((project_path / "package.json").exists(), f"{rel(project_path)}: package.json missing")
+        require((project_path / "Jenkinsfile").exists(), f"{rel(project_path)}: Jenkinsfile missing")
+        commands = project.get("validation", {}).get("commands", [])
+        require(isinstance(commands, list) and len(commands) >= 2, f"{rel(manifest_path)}: {project['id']} needs at least two validation commands")
+        tags = project.get("coverageTags", [])
+        require(isinstance(tags, list) and len(tags) >= 4, f"{rel(manifest_path)}: {project['id']} needs coverage tags")
+        require(project.get("repository", {}).get("provider") == "local-git", f"{rel(manifest_path)}: {project['id']} repository.provider must be local-git")
+        require(project.get("cicd", {}).get("provider") == "jenkins", f"{rel(manifest_path)}: {project['id']} cicd.provider must be jenkins")
+
+    profile = read_json(evopilot_profile_path)
+    require(profile.get("schema") == "agent-octopus-production-representative-target-profile/v1", f"{rel(evopilot_profile_path)}: invalid profile schema")
+    require(profile.get("target") == "evopilot", f"{rel(evopilot_profile_path)}: profile target must be evopilot")
+    registration = profile.get("projectRegistration", {})
+    require(registration.get("endpoint") == "/api/v1/projects", f"{rel(evopilot_profile_path)}: EvoPilot registration endpoint must be /api/v1/projects")
+    for boundary in ["gitlab", "jenkins", "llm"]:
+        require(profile.get("externalBoundaries", {}).get(boundary, {}).get("requiredForReleaseEvidence") is True, f"{rel(evopilot_profile_path)}: {boundary} must be required for release evidence")
 
 
 def validate_manifest_shape(path: Path, manifest: dict) -> None:
@@ -428,6 +489,7 @@ def validate_proposal_script_contract() -> None:
 
 def validate_all() -> list[str]:
     validate_schema_files()
+    validate_production_representative_sandbox()
     paths = sorted(MANIFEST_DIR.glob("*.json"))
     require(paths, "manifests/agents: no manifest files found")
 

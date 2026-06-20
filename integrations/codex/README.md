@@ -12,6 +12,8 @@ Codex `/goal` is supported as the outer runtime for installed Codex agents. It d
 
 For release, release-readiness, GA, public-beta, production-grade, or long-running product lifecycle goals, the installed agent must expand the user's goal into a release coverage matrix before running. The plan must include `coverageMatrix`, `iterationPlan`, `evidenceMap`, `blockerPolicy`, `repairPolicy`, `releaseDecision`, and `decisionChain`; every phase report must print the 阶段决策链 with evidence, rule, options, decision, rationale, and next action.
 
+If the target project has no real customer production projects, installed agents may use the shared Production Representative Sandbox at `sandbox/production-representative/manifest.json`. Generated representative projects must still be registered through the target product and verified through real SCM, CI/CD, LLM/runtime, and product-native evidence boundaries before they count as release evidence.
+
 Render the adapter plan for an agent:
 
 ```bash

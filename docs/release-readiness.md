@@ -41,6 +41,7 @@ The gate runs or verifies:
 | Loop plans | `loopContract`, required loop state fields, Codex goal adapter, artifact plan |
 | Loop goal window | every packaged agent requires explicit final goal, phase goals, acceptance criteria, report cadence, and final decision |
 | Release coverage matrix loop | every packaged agent requires coverage matrix, evidence map, blocker policy, repair policy, release decision, and per-phase decision chain |
+| Production representative sandbox | shared local representative project set is contract-checked and forbidden from counting as release evidence until target-product registration and real boundaries are proven |
 | Production release rule | every packaged agent forbids mock/fake/stub/simulator/fixture-only/demo-only/smoke-only/chat-only release evidence |
 | Docs | README release section and docs for release and competitive baseline |
 | Commands | manifest validation, distribution check, catalog check, deterministic eval, whitespace check, Codex install drift |
@@ -87,6 +88,26 @@ nextAction:
 ```
 
 Health checks, process keepalive, smoke checks, or repeating the same failed path do not count as release progress by themselves. If the same blocker repeats, the agent must switch from rerun mode into diagnosis, productized repair, and verification; if that cannot be done under the current permissions or product boundary, the loop must stop as `BLOCKED` or `NO-GO`.
+
+## Production Representative Sandbox
+
+When real customer production projects are unavailable in a local environment, release coverage matrix loops may use the shared Production Representative Sandbox:
+
+```text
+sandbox/production-representative/manifest.json
+```
+
+The sandbox provides representative project templates for backend API, Dashboard UI, MCP/tool contract, evidence data pipeline, and quality-gate failure/repair behavior. Generated repositories live under `data/production-representative-sandbox/` and are not committed.
+
+These projects count as release evidence only after all of the following are proven:
+
+- The projects are generated or selected as real Git repositories.
+- Their real validation commands pass or fail with captured evidence.
+- The target product registers them through its own API or data path.
+- Real SCM, CI/CD, LLM/runtime, and product-native evidence boundaries are used.
+- Every phase prints the decision chain for using or rejecting the representative projects.
+
+If any required boundary is missing, inaccessible, or replaced by a non-production substitute, the affected matrix row is `BLOCKED` or `NO-GO`. Template-only, mock-only, fixture-only, smoke-only, or chat-only representative projects do not count as release evidence.
 
 ## Toolkit-Wide Production Release Rule
 

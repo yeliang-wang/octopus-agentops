@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Production-oriented agent workflow platform for Claude Code and Codex.",
   "scripts": {
-    "check": "python3 -m py_compile sandbox/octopus_sandbox.py scripts/propose-changes.py scripts/apply-proposal.py scripts/validate-toolkit.py scripts/octopus-control.py scripts/generate-distributions.py scripts/generate-catalog.py scripts/evaluate-agents.py scripts/release-readiness.py && bash -n scripts/install.sh && python3 scripts/validate-toolkit.py",
+    "check": "python3 -m py_compile sandbox/octopus_sandbox.py sandbox/production-representative/scripts/create-projects.py sandbox/production-representative/scripts/create-jenkins-jobs.py sandbox/production-representative/scripts/register-target.py sandbox/production-representative/scripts/verify-sandbox.py scripts/propose-changes.py scripts/apply-proposal.py scripts/validate-toolkit.py scripts/octopus-control.py scripts/generate-distributions.py scripts/generate-catalog.py scripts/evaluate-agents.py scripts/release-readiness.py && bash -n scripts/install.sh && python3 scripts/validate-toolkit.py",
     "validate": "python3 scripts/validate-toolkit.py",
     "generate": "python3 scripts/generate-distributions.py && python3 scripts/generate-catalog.py",
     "eval": "python3 scripts/evaluate-agents.py",
@@ -13,7 +13,8 @@
     "agents:search": "python3 scripts/octopus-control.py search",
     "agents:goal-plan": "python3 scripts/octopus-control.py goal-plan",
     "agents:codex-status": "python3 scripts/octopus-control.py codex-status",
-    "agents:install": "python3 scripts/octopus-control.py install"
+    "agents:install": "python3 scripts/octopus-control.py install",
+    "sandbox:verify": "python3 sandbox/production-representative/scripts/verify-sandbox.py"
   },
   "repository": {
     "type": "git",

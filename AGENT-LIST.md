@@ -24,6 +24,8 @@ Run `npm run validate` to check manifests, Markdown sources, Codex distributions
 
 Every manifest also declares a structured `loopContract` and `runtimeAdapters.codexGoal` plan. Release-focused loops must include a release coverage matrix, evidence map, repair policy, release decision, and printed per-phase decision chain. Use `npm run agents:goal-plan -- --agent <agent> --project-id <project> "<goal>"` to render the Codex `/goal` mapping without making the toolkit Codex-only.
 
+All packaged agents can share the Production Representative Sandbox at `sandbox/production-representative/manifest.json` when a local release matrix needs representative connected projects before real customer production projects exist. The sandbox project set must still be registered through the target product and real SCM, CI/CD, LLM/runtime, and product-native evidence boundaries before it can count as release evidence.
+
 Run `npm run release:check` before public distribution. The release gate requires package metadata, license, beta-or-better lifecycles, loop contracts, Codex goal plans, generated outputs, deterministic eval, and project-scoped Codex install drift to pass.
 
 ## Plugins

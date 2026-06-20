@@ -20,6 +20,7 @@ from typing import Any
 REPO_ROOT = Path(__file__).resolve().parents[1]
 MANIFEST_DIR = REPO_ROOT / "manifests" / "agents"
 PLUGIN_DIR = REPO_ROOT / "plugins"
+PRODUCTION_REPRESENTATIVE_SANDBOX_DIR = REPO_ROOT / "sandbox" / "production-representative"
 SEMVER_RE = re.compile(r"^\d+\.\d+\.\d+$")
 PRODUCTION_RELEASE_RULE_SECTION = "Toolkit-Wide Production Release Rule"
 LOOP_GOAL_WINDOW_SECTION = "Loop Goal Window"
@@ -176,6 +177,33 @@ def docs_checks() -> list[dict[str, Any]]:
     add(checks, "release-doc-loop-goal-window", release_doc.exists() and LOOP_GOAL_WINDOW_SECTION in release_doc.read_text(encoding="utf-8"))
     add(checks, "readme-release-coverage-matrix", RELEASE_COVERAGE_MATRIX_SECTION in readme)
     add(checks, "release-doc-release-coverage-matrix", release_doc.exists() and RELEASE_COVERAGE_MATRIX_SECTION in release_doc.read_text(encoding="utf-8"))
+    add(checks, "readme-production-representative-sandbox", "Production Representative Sandbox" in readme)
+    add(checks, "sandbox-readme", (PRODUCTION_REPRESENTATIVE_SANDBOX_DIR / "README.md").exists())
+    return checks
+
+
+def production_representative_sandbox_checks() -> list[dict[str, Any]]:
+    checks: list[dict[str, Any]] = []
+    manifest_path = PRODUCTION_REPRESENTATIVE_SANDBOX_DIR / "manifest.json"
+    profile_path = PRODUCTION_REPRESENTATIVE_SANDBOX_DIR / "profiles" / "evopilot.release-matrix.json"
+    add(checks, "sandbox-manifest", manifest_path.exists(), str(manifest_path))
+    add(checks, "sandbox-schema", (PRODUCTION_REPRESENTATIVE_SANDBOX_DIR / "manifest.schema.json").exists())
+    add(checks, "sandbox-evopilot-profile", profile_path.exists(), str(profile_path))
+    if manifest_path.exists():
+        manifest = read_json(manifest_path)
+        project_ids = {project.get("id") for project in manifest.get("projects", [])}
+        shared_agents = set(manifest.get("sharedByAgents", []))
+        packaged_agents = {path.stem for path in MANIFEST_DIR.glob("*.json")}
+        add(checks, "sandbox-project-count", len(project_ids) >= 5, ", ".join(sorted(project_ids)))
+        add(checks, "sandbox-shared-agents", shared_agents == packaged_agents, ", ".join(sorted(shared_agents)))
+        add(checks, "sandbox-release-evidence-rule", "real Git repositories" in manifest.get("releaseEvidenceRule", "") and "smoke-only" in manifest.get("releaseEvidenceRule", ""))
+        for project in manifest.get("projects", []):
+            template = PRODUCTION_REPRESENTATIVE_SANDBOX_DIR / project["template"]
+            add(checks, f"sandbox:{project['id']}:template", template.exists(), str(template))
+            add(checks, f"sandbox:{project['id']}:jenkinsfile", (template / "Jenkinsfile").exists())
+            add(checks, f"sandbox:{project['id']}:validation", len(project.get("validation", {}).get("commands", [])) >= 2)
+    command = run([sys.executable, "sandbox/production-representative/scripts/verify-sandbox.py"], "production-representative-sandbox")
+    checks.append(command)
     return checks
 
 
@@ -215,6 +243,7 @@ def build_result() -> dict[str, Any]:
         "package": package_checks(),
         "lifecycle": lifecycle_checks(),
         "loopPlans": loop_plan_checks(),
+        "productionRepresentativeSandbox": production_representative_sandbox_checks(),
         "productionReleaseRule": production_release_rule_checks(),
         "docs": docs_checks(),
         "commands": command_checks(),
