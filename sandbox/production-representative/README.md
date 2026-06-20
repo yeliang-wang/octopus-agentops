@@ -110,3 +110,7 @@ All packaged agents may read `manifest.json`:
 - `product-evolution-lab` runs cross-project product evolution pressure.
 
 Every phase report must still print the decision chain: `phase`, `evidence`, `rule`, `options`, `decision`, `rationale`, and `nextAction`.
+
+## Generic Project Profiles
+
+Target products should expose sandbox registration and release evidence through a generic `agent-octopus-project-profile/v1` profile. The EvoPilot GA profile in `project-profiles/examples/evopilot.ga.json` is an example, not a toolkit-core dependency. Other projects should provide their own health endpoints, commands, external-boundary checks, release evidence endpoint, and release decision endpoint while preserving the same production evidence rules.

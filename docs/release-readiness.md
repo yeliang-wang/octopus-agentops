@@ -89,6 +89,22 @@ rationale:
 nextAction:
 ```
 
+## Project Profile Execution
+
+Release execution is generic through `agent-octopus-project-profile/v1`. The project profile is the anti-corruption layer between toolkit governance and a target product runtime:
+
+- toolkit core owns loop cadence, target plan confirmation, compact state, artifact externalization, event logs, coverage status, blocker policy, and decision-chain reporting.
+- project profiles declare health endpoints, commands, HTTP checks, external boundaries, production representative registration, release evidence, and product-native release decisions.
+- optional project adapters may translate target-product APIs into the profile contract, but they must not weaken toolkit release rules.
+
+The generic runner is:
+
+```bash
+npm run release:runner -- --profile <octopus.project.json>
+```
+
+If `targetPlanConfirmation.status` is not `confirmed`, the runner writes `BLOCKED: pending loop target plan confirmation` and exits without executing release actions.
+
 Health checks, process keepalive, smoke checks, or repeating the same failed path do not count as release progress by themselves. If the same blocker repeats, the agent must switch from rerun mode into diagnosis, productized repair, and verification; if that cannot be done under the current permissions or product boundary, the loop must stop as `BLOCKED` or `NO-GO`.
 
 ## Production Representative Sandbox

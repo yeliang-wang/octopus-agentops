@@ -132,6 +132,16 @@ The matrix keeps the loop tied to product behavior rather than process keepalive
 
 This means a future prompt can be short, such as `Use production-lifecycle-governor to take this project through a release coverage matrix loop toward public-beta readiness.` The agent is responsible for discovering product-specific coverage rows and printing the decision chain for each phase.
 
+### Project Profile Runner
+
+Protocol is generic, and execution is generic through a project profile. A target project supplies `agent-octopus-project-profile/v1` with its health endpoints, real commands, real SCM/CI/CD/LLM boundaries, release evidence endpoint, release decision endpoint, coverage rows, and confirmed `targetPlan`. The toolkit runner consumes that profile without hard-coding project APIs:
+
+```bash
+npm run release:runner -- --profile project-profiles/examples/evopilot.ga.json
+```
+
+The runner enforces `targetPlanConfirmation` before executing, writes compact `loop-state.json`, externalizes full iteration evidence under `artifacts/`, records summary events in `loop.jsonl`, and prints per-phase decision chains. Project-specific behavior belongs in the profile or an adapter step; toolkit core owns loop execution, evidence discipline, state compaction, and release decision governance.
+
 ### Production Representative Sandbox
 
 When a local environment has no real customer production projects, Octopus AgentOps provides a shared `Production Representative Sandbox` under `sandbox/production-representative/`. It creates representative projects that can be registered into a target product and used as release coverage matrix rows.

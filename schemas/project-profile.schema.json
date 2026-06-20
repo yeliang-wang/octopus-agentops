@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Octopus Project Profile",
+  "type": "object",
+  "required": ["schema", "projectId", "releaseTarget", "lifecycleId", "targetPlan", "targetPlanConfirmation", "runner"],
+  "additionalProperties": true,
+  "properties": {
+    "schema": {
+      "const": "agent-octopus-project-profile/v1"
+    },
+    "projectId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "releaseTarget": {
+      "type": "string",
+      "minLength": 1
+    },
+    "lifecycleId": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]*$"
+    },
+    "projectRoot": {
+      "type": "string"
+    },
+    "targetPlan": {
+      "type": "object",
+      "required": ["finalGoal", "phaseGoals", "acceptanceCriteria", "finalDecision"],
+      "properties": {
+        "finalGoal": { "type": "string", "minLength": 1 },
+        "phaseGoals": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+        "acceptanceCriteria": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+        "finalDecision": { "type": "array", "items": { "type": "string" }, "minItems": 2 }
+      }
+    },
+    "targetPlanConfirmation": {
+      "type": "object",
+      "required": ["status"],
+      "properties": {
+        "status": { "enum": ["confirmed", "pending", "rejected"] },
+        "confirmedAt": { "type": "string" },
+        "confirmedBy": { "type": "string" },
+        "instruction": { "type": "string" }
+      }
+    },
+    "runner": {
+      "type": "object",
+      "required": ["mode", "intervalMs"],
+      "properties": {
+        "mode": { "enum": ["continuous", "once"] },
+        "intervalMs": { "type": "integer", "minimum": 1000 }
+      }
+    },
+    "envFiles": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "steps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "type", "requiredEvidence"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "type": {
+            "enum": ["health", "command", "http", "boundary", "sandbox-verify", "sandbox-register", "release-evidence", "release-decision"]
+          },
+          "capability": { "type": "string" },
+          "scenario": { "type": "string" },
+          "requiredEvidence": { "type": "string" },
+          "required": { "type": "boolean" }
+        }
+      }
+    }
+  }
+}

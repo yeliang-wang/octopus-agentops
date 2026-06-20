@@ -28,6 +28,7 @@ AGENTS_DIR = REPO_ROOT / "agents"
 CODEX_AGENT_DIR = REPO_ROOT / "integrations" / "codex" / "agents"
 SCHEMA_DIR = REPO_ROOT / "schemas"
 CATALOG_DIR = REPO_ROOT / "catalog"
+PROJECT_PROFILE_DIR = REPO_ROOT / "project-profiles"
 PRODUCTION_REPRESENTATIVE_SANDBOX_DIR = REPO_ROOT / "sandbox" / "production-representative"
 AGENT_ID_RE = re.compile(r"^[a-z0-9][a-z0-9-]*$")
 VERSION_RE = re.compile(r"^\d+\.\d+\.\d+$")
@@ -171,6 +172,7 @@ def validate_schema_files() -> None:
         "eval-result.schema.json",
         "loop-contract.schema.json",
         "plugin-manifest.schema.json",
+        "project-profile.schema.json",
         "proposal.schema.json",
         "run-summary.schema.json",
     ]
@@ -226,6 +228,34 @@ def validate_production_representative_sandbox() -> None:
     for boundary in ["gitlab", "jenkins", "llm"]:
         require(profile.get("externalBoundaries", {}).get(boundary, {}).get("requiredForReleaseEvidence") is True, f"{rel(evopilot_profile_path)}: {boundary} must be required for release evidence")
 
+
+def validate_project_profiles() -> None:
+    require(PROJECT_PROFILE_DIR.exists(), f"{rel(PROJECT_PROFILE_DIR)}: project profile directory missing")
+    profiles = sorted(PROJECT_PROFILE_DIR.glob("**/*.json"))
+    require(profiles, f"{rel(PROJECT_PROFILE_DIR)}: at least one project profile example is required")
+    for path in profiles:
+      profile = read_json(path)
+      require(profile.get("schema") == "agent-octopus-project-profile/v1", f"{rel(path)}: invalid schema")
+      for key in ["projectId", "releaseTarget", "lifecycleId", "targetPlan", "targetPlanConfirmation", "runner", "steps"]:
+          require(key in profile, f"{rel(path)}: missing {key}")
+      target_plan = profile["targetPlan"]
+      for key in ["finalGoal", "phaseGoals", "acceptanceCriteria", "finalDecision"]:
+          require(key in target_plan, f"{rel(path)}: targetPlan missing {key}")
+      require(isinstance(target_plan["phaseGoals"], list) and target_plan["phaseGoals"], f"{rel(path)}: targetPlan.phaseGoals must be non-empty")
+      require(isinstance(target_plan["acceptanceCriteria"], list) and target_plan["acceptanceCriteria"], f"{rel(path)}: targetPlan.acceptanceCriteria must be non-empty")
+      require(profile["targetPlanConfirmation"].get("status") == "confirmed", f"{rel(path)}: example profile must include confirmed targetPlanConfirmation")
+      require(profile["runner"].get("mode") in {"continuous", "once"}, f"{rel(path)}: runner.mode must be continuous or once")
+      steps = profile["steps"]
+      require(isinstance(steps, list) and steps, f"{rel(path)}: steps must be non-empty")
+      seen_step_ids = set()
+      for step in steps:
+          step_id = step.get("id")
+          require(isinstance(step_id, str) and step_id, f"{rel(path)}: step.id is required")
+          require(step_id not in seen_step_ids, f"{rel(path)}: duplicate step id {step_id}")
+          seen_step_ids.add(step_id)
+          require(step.get("type") in {"health", "command", "http", "boundary", "sandbox-verify", "sandbox-register", "release-evidence", "release-decision"}, f"{rel(path)}: invalid step type for {step_id}")
+          require(isinstance(step.get("requiredEvidence"), str) and step["requiredEvidence"], f"{rel(path)}: step {step_id} missing requiredEvidence")
+      require(any(step.get("type") == "release-decision" for step in steps), f"{rel(path)}: project profile requires a release-decision step")
 
 def validate_manifest_shape(path: Path, manifest: dict) -> None:
     required = [
@@ -499,6 +529,7 @@ def validate_proposal_script_contract() -> None:
 def validate_all() -> list[str]:
     validate_schema_files()
     validate_production_representative_sandbox()
+    validate_project_profiles()
     paths = sorted(MANIFEST_DIR.glob("*.json"))
     require(paths, "manifests/agents: no manifest files found")
 
