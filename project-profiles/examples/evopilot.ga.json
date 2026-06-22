@@ -33,6 +33,12 @@
   "runner": {
     "mode": "continuous",
     "intervalMs": 1800000,
+    "blockerPolicy": {
+      "mode": "stop-on-required-blocker",
+      "reason": "GA release coverage blockers require productized repair before the next loop run.",
+      "nextAction": "Stop the matrix loop, repair the product blocker with real evidence, verify targeted checks, then resume the runner.",
+      "exitCode": 2
+    },
     "finalReports": {
       "markdown": "data/production-lifecycle/evopilot-ga-release-matrix/final-report.md",
       "json": "data/production-lifecycle/evopilot-ga-release-matrix/final-report.json",

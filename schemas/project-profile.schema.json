@@ -49,6 +49,16 @@
       "properties": {
         "mode": { "enum": ["continuous", "once"] },
         "intervalMs": { "type": "integer", "minimum": 1000 },
+        "blockerPolicy": {
+          "type": "object",
+          "properties": {
+            "mode": { "enum": ["continue", "stop-on-required-blocker", "stop-on-repeated-blocker"] },
+            "repeatedThreshold": { "type": "integer", "minimum": 1 },
+            "reason": { "type": "string" },
+            "nextAction": { "type": "string" },
+            "exitCode": { "type": "integer" }
+          }
+        },
         "finalReports": {
           "type": "object",
           "required": ["markdown", "json", "includeIterationTargetSummaries", "includeFinalTargetSummary"],

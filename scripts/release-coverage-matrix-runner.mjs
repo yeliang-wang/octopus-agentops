@@ -25,6 +25,7 @@ const logPath = path.join(tmpRoot, "loop.jsonl");
 const textLogPath = path.join(tmpRoot, "loop.log");
 const intervalMs = Number(args.intervalMs ?? profile.runner?.intervalMs ?? 30 * 60 * 1000);
 const once = Boolean(args.once) || profile.runner?.mode === "once";
+const blockerPolicy = profile.runner?.blockerPolicy ?? {};
 
 fs.mkdirSync(tmpRoot, { recursive: true });
 fs.mkdirSync(lifecycleRoot, { recursive: true });
@@ -73,6 +74,23 @@ while (true) {
     writeFinalReport(result, result.blocker ? "single-run-blocked" : "single-run-complete");
     append({ event: "loop.finished", at: new Date().toISOString(), status: result.releaseDecision?.status ?? "PENDING", iteration, finalReport: finalReportPath });
     process.exit(result.blocker ? 1 : 0);
+  }
+  const blockerStop = evaluateBlockerStop(result);
+  if (blockerStop.stop) {
+    const stoppedResult = withLoopControl(result, blockerStop);
+    writeIterationArtifact(iteration, stoppedResult);
+    writeState(baseState(stoppedResult), stoppedResult.decisionChain);
+    writeFinalReport(stoppedResult, blockerStop.terminalReason);
+    append({
+      event: "loop.paused_for_repair",
+      at: new Date().toISOString(),
+      status: stoppedResult.releaseDecision?.status ?? "PENDING",
+      iteration,
+      blocker: stoppedResult.blocker,
+      policy: blockerStop.policy,
+      finalReport: finalReportPath
+    });
+    process.exit(blockerStop.exitCode);
   }
   await sleep(intervalMs);
 }
@@ -257,6 +275,7 @@ function baseState(result) {
     summary: result.summary,
     blocker: result.blocker,
     nextAction: result.nextAction,
+    loopControl: result.loopControl,
     latestArtifact: path.join(artifactRoot, `iteration-${String(result.attempt ?? 0).padStart(4, "0")}.json`),
     iterationPlanTargetSummaries: collectIterationTargetPlanSummaries(result),
     finalReport: {
@@ -264,7 +283,11 @@ function baseState(result) {
       json: finalReportJsonPath,
       status: result.releaseDecision?.status === (profile.releaseDecision?.goStatus ?? "GO") ? "available" : "pending"
     },
-    stopCondition: result.releaseDecision?.status === (profile.releaseDecision?.goStatus ?? "GO") ? "release_target_reached" : "continue_until_go_or_unrepairable_blocker",
+    stopCondition: result.loopControl?.status === "PAUSED_FOR_REPAIR"
+      ? "paused_for_repair_before_resume"
+      : result.releaseDecision?.status === (profile.releaseDecision?.goStatus ?? "GO")
+        ? "release_target_reached"
+        : "continue_until_go_or_unrepairable_blocker",
     updatedAt: result.updatedAt ?? new Date().toISOString()
   };
 }
@@ -342,12 +365,17 @@ function buildFinalTargetSummary(result, iterationSummaries) {
     finalGoal: profile.targetPlan.finalGoal,
     finalDecision: result.releaseDecision?.status ?? "PENDING",
     targetReached: result.releaseDecision?.status === goStatus,
+    loopControl: result.loopControl,
     totalIterations: iterationSummaries.length,
     latestIteration: latest.iteration,
     latestCoverage: latest.coverage,
     blocker: result.blocker || "",
     unmetAcceptanceCriteria: latest.targetAlignment === "GA_RELEASE_TARGET_REACHED" ? [] : profile.targetPlan.acceptanceCriteria,
-    conclusion: result.releaseDecision?.status === goStatus ? `${profile.releaseTarget} Release Target reached.` : `${profile.releaseTarget} Release Target not reached.`
+    conclusion: result.releaseDecision?.status === goStatus
+      ? `${profile.releaseTarget} Release Target reached.`
+      : result.loopControl?.status === "PAUSED_FOR_REPAIR"
+        ? `${profile.releaseTarget} Release Target not reached; loop paused for productized repair before resume.`
+        : `${profile.releaseTarget} Release Target not reached.`
   };
 }
 
@@ -383,6 +411,7 @@ Generated: ${report.generatedAt}
 - Latest iteration: ${report.finalTargetSummary.latestIteration ?? "unknown"}
 - Required coverage: ${report.finalTargetSummary.latestCoverage?.passed ?? 0}/${report.finalTargetSummary.latestCoverage?.required ?? 0} passed
 - Blocker: ${report.finalTargetSummary.blocker || "none"}
+- Loop control: ${report.finalTargetSummary.loopControl?.status ?? "RUNNING"}
 - Conclusion: ${report.finalTargetSummary.conclusion}
 
 ## Target Plan
@@ -456,6 +485,13 @@ Updated: ${state.updatedAt}
 
 ${state.blocker || "none"}
 
+## Loop Control
+
+- Status: ${state.loopControl?.status ?? "RUNNING"}
+- Policy: ${state.loopControl?.policy ?? "continue"}
+- Reason: ${state.loopControl?.reason ?? "none"}
+- Resume command: ${state.loopControl?.resumeCommand ?? "none"}
+
 ## Coverage Matrix
 
 ${state.coverageMatrix.map((item) => `- ${item.status} ${item.capability}/${item.scenario}: ${item.requiredEvidence}`).join("\n")}
@@ -489,6 +525,68 @@ function row(step, status, blocker, nextRepairAction) {
 
 function chain(phase, evidence, rule, options, decision, rationale, nextAction) {
   return { phase, evidence: compactEvidence(evidence), rule, options, decision, rationale, nextAction };
+}
+
+function evaluateBlockerStop(result) {
+  if (!result.blocker) return { stop: false };
+  const mode = blockerPolicy.mode ?? "continue";
+  if (mode === "continue") return { stop: false };
+
+  if (mode === "stop-on-required-blocker") {
+    return blockerStop("required-blocker", "blocked-requires-repair");
+  }
+
+  if (mode === "stop-on-repeated-blocker") {
+    const threshold = Math.max(1, Number(blockerPolicy.repeatedThreshold ?? 2));
+    if (countConsecutiveBlocker(result.blocker) >= threshold) {
+      return blockerStop(`repeated-blocker-${threshold}`, "repeated-blocker-requires-repair");
+    }
+  }
+
+  return { stop: false };
+}
+
+function blockerStop(policy, terminalReason) {
+  return {
+    stop: true,
+    policy,
+    terminalReason,
+    exitCode: Number(blockerPolicy.exitCode ?? 2),
+    reason: blockerPolicy.reason ?? "Required release coverage blocker must be repaired before the next loop run."
+  };
+}
+
+function countConsecutiveBlocker(blocker) {
+  let count = 0;
+  if (!fs.existsSync(artifactRoot)) return count;
+  const files = fs.readdirSync(artifactRoot).filter((name) => /^iteration-\d+\.json$/.test(name)).sort().reverse();
+  for (const fileName of files) {
+    try {
+      const artifact = readJson(path.join(artifactRoot, fileName));
+      if (artifact.blocker === blocker) count += 1;
+      else break;
+    } catch {
+      break;
+    }
+  }
+  return count;
+}
+
+function withLoopControl(result, blockerStopResult) {
+  const resumeCommand = `npm --prefix ${repoRoot} run release:runner -- --profile ${profilePath}`;
+  return {
+    ...result,
+    nextAction: blockerPolicy.nextAction ?? "Stop the loop, repair the product blocker, verify targeted evidence, then resume the runner.",
+    loopControl: {
+      status: "PAUSED_FOR_REPAIR",
+      policy: blockerStopResult.policy,
+      reason: blockerStopResult.reason,
+      blocker: result.blocker,
+      repairRequired: true,
+      resumeCommand,
+      pausedAt: new Date().toISOString()
+    }
+  };
 }
 
 async function fetchJson(url, options = {}) {
